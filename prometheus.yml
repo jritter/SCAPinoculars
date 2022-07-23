@@ -1,0 +1,17 @@
+
+# This is an example prometheus configuration for the openscap_report_parser
+
+global:
+  scrape_interval: 15s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
+  evaluation_interval: 15s # Evaluate rules every 15 seconds. The default is every 1 minute.
+
+
+scrape_configs:
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  # This section actually configures the openscap_report_exporter
+  - job_name: "openscap_report_publisher"
+    static_configs:
+      - targets: ["localhost:2112"] 

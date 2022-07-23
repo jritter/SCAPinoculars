@@ -60,3 +60,23 @@ oscap xccdf generate report --output resources/report.html resources/arf.xml
   </arf:reports>
 </arf:asset-report-collection>
 ```
+
+## Some interesting Prom queries
+
+### Aggregate passed vs. not passed results
+
+```promql
+count_values("openscap_result", openscap_results)
+```
+
+### Percentage of passed checks
+
+```promql
+count(openscap_results == 1)/count(openscap_results)*100
+```
+
+### Percentage of failed checks
+
+```promql
+count(openscap_results == 0)/count(openscap_results)*100
+```
