@@ -24,6 +24,13 @@ oscap xccdf generate report --output resources/report.html resources/arf.xml
     <arf:report id="xccdf1">
       <arf:content>
         <TestResult xmlns="http://checklists.nist.gov/xccdf/1.2" id="xccdf_org.open-scap_testresult_xccdf_org.ssgproject.content_profile_cis_server_l1" start-time="2022-07-21T20:51:15+01:00" end-time="2022-07-21T20:51:39+01:00" version="0.1.60" test-system="cpe:/a:redhat:openscap:1.3.6">
+          <benchmark href="#scap_org.open-scap_comp_ssg-rhel8-xccdf-1.2.xml" id="xccdf_org.ssgproject.content_benchmark_RHEL-8"/>
+          <title>OSCAP Scan Result</title>
+          <identity authenticated="false" privileged="false">root</identity>
+          <profile idref="xccdf_org.ssgproject.content_profile_cis_server_l1"/>
+          <target>hostname.example.local</target>
+          <target-address>127.0.0.1</target-address>
+          <target-address>0:0:0:0:0:0:0:1</target-address>
           <rule-result idref="xccdf_org.ssgproject.content_rule_configure_crypto_policy" role="full" time="2022-07-21T20:51:16+01:00" severity="high" weight="1.000000">
             <result>pass</result>
             <ident system="https://nvd.nist.gov/cce/index.cfm">CCE-80935-0</ident>
@@ -47,6 +54,13 @@ oscap xccdf generate report --output resources/report.html resources/arf.xml
     <arf:report id="xccdf1">
       <arf:content>
         <TestResult xmlns="http://checklists.nist.gov/xccdf/1.2" id="xccdf_org.open-scap_testresult_xccdf_org.ssgproject.content_profile_cis_server_l1" start-time="2022-07-21T20:51:15+01:00" end-time="2022-07-21T20:51:39+01:00" version="0.1.60" test-system="cpe:/a:redhat:openscap:1.3.6">
+          <benchmark href="#scap_org.open-scap_comp_ssg-rhel8-xccdf-1.2.xml" id="xccdf_org.ssgproject.content_benchmark_RHEL-8"/>
+          <title>OSCAP Scan Result</title>
+          <identity authenticated="false" privileged="false">root</identity>
+          <profile idref="xccdf_org.ssgproject.content_profile_cis_server_l1"/>
+          <target>hostname.example.local</target>
+          <target-address>127.0.0.1</target-address>
+          <target-address>0:0:0:0:0:0:0:1</target-address>
           <rule-result idref="xccdf_org.ssgproject.content_rule_partition_for_tmp" role="full" time="2022-07-21T20:51:16+01:00" severity="low" weight="1.000000">
             <result>fail</result>
             <ident system="https://nvd.nist.gov/cce/index.cfm">CCE-80851-9</ident>

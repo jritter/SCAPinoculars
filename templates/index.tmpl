@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>OpenSCAP Reports</title>
+  </head>
+  <body>
+    {{ range . }}
+    <ul>
+      <li><a href="{{ .HTMLReport }}">{{ .Target }} {{ .IDRef }}</a> {{ .Date }}</li>
+    </ul>
+    {{ end }}
+
+    
+  </body>
+</html>

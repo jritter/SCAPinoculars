@@ -1,4 +1,4 @@
-package openscap_report_parser
+package reportparser
 
 import (
 	"encoding/xml"
@@ -8,22 +8,26 @@ import (
 	"time"
 )
 
+// Represents an AssetReportCollection Object on a OpenSCAP XCCDF Report
 type AssetReportCollection struct {
 	XMLName xml.Name `xml:"asset-report-collection"`
 	Reports Reports  `xml:"reports"`
 }
 
+// Represents a Report List Object on a OpenSCAP XCCDF Report
 type Reports struct {
 	XMLName xml.Name `xml:"reports"`
 	Reports []Report `xml:"report"`
 }
 
+// Represents a Report Object on a OpenSCAP XCCDF Report
 type Report struct {
 	XMLName xml.Name `xml:"report"`
-	Id      string   `xml:"id,attr"`
+	ID      string   `xml:"id,attr"`
 	Content Content  `xml:"content"`
 }
 
+// Represents a Content Object on a OpenSCAP XCCDF Report
 type Content struct {
 	XMLName    xml.Name   `xml:"content"`
 	TestResult TestResult `xml:"TestResult"`
@@ -31,22 +35,29 @@ type Content struct {
 
 type TestResult struct {
 	XMLName     xml.Name     `xml:"TestResult"`
-	Id          string       `xml:"id,attr"`
+	ID          string       `xml:"id,attr"`
 	StartTime   time.Time    `xml:"start-time,attr"`
 	EndTime     time.Time    `xml:"end-time,attr"`
 	RuleResults []RuleResult `xml:"rule-result"`
+	Title       string       `xml:"title"`
+	Profile     Profile      `xml:"profile"`
+	Target      string       `xml:"target"`
+}
+
+type Profile struct {
+	XMLName xml.Name `xml:"profile"`
+	IDRef   string   `xml:"idref,attr"`
 }
 
 type RuleResult struct {
 	XMLName  xml.Name `xml:"rule-result"`
-	IdRef    string   `xml:"idref,attr"`
+	IDRef    string   `xml:"idref,attr"`
 	Severity string   `xml:"severity,attr"`
 	Result   string   `xml:"result"`
 }
 
-
 func ParseReport(file string) TestResult {
-// Open our xmlFile
+	// Open our xmlFile
 	xmlFile, err := os.Open(file)
 	// if we os.Open returns an error then handle it
 	if err != nil {
@@ -61,11 +72,11 @@ func ParseReport(file string) TestResult {
 	var assetReportCollection AssetReportCollection
 	xml.Unmarshal(byteValue, &assetReportCollection)
 
-  fmt.Println(assetReportCollection.Reports.Reports[0].Content.TestResult.StartTime)
+	fmt.Println(assetReportCollection.Reports.Reports[0].Content.TestResult.StartTime)
 
 	for _, result := range assetReportCollection.Reports.Reports[0].Content.TestResult.RuleResults {
 		if result.Result != "notselected" {
-			fmt.Printf("ID: %s\tResult: %s\n", result.IdRef, result.Result)
+			fmt.Printf("ID: %s\tResult: %s\n", result.IDRef, result.Result)
 		}
 	}
 
