@@ -32,7 +32,7 @@ func renderHandler(w http.ResponseWriter, r *http.Request) {
 func handleReports() {
 	var reports = []Report{}
 
-	files, err = ioutil.ReadDir("resources/arf")
+	files, err := ioutil.ReadDir("resources/arf")
 	if err != nil {
 		log.Fatal(err)
 	}
