@@ -14,12 +14,7 @@ import (
 	"github.com/jritter/openscap-report-publisher/reportparser"
 	"github.com/jritter/openscap-report-publisher/reportrenderer"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-)
-
-var (
-	reg = prometheus.NewRegistry()
 )
 
 type Report struct {
@@ -37,8 +32,7 @@ func renderHandler(w http.ResponseWriter, r *http.Request) {
 func handleReports() {
 	var reports = []Report{}
 
-	// read our input directory
-	files, err := ioutil.ReadDir("resources/arf")
+	files, err = ioutil.ReadDir("resources/arf")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -57,7 +51,7 @@ func handleReports() {
 
 					// Create Prometheus gauge for each RuleResult
 					// and we add report and result specific labels
-					gauge := promauto.With(reg).NewGauge(prometheus.GaugeOpts{
+					gauge := prometheus.NewGauge(prometheus.GaugeOpts{
 						Name: "openscap_results",
 						Help: "OpenSCAP Results",
 						ConstLabels: prometheus.Labels{
@@ -66,6 +60,8 @@ func handleReports() {
 							"target":       report.Target,
 							"profile":      report.Profile.IDRef},
 					})
+
+					prometheus.Register(gauge)
 
 					// gauge value 0 means fail, gauge vaule 1 means pass
 					if result.Result == "fail" {
@@ -109,6 +105,21 @@ func handleReports() {
 }
 
 func main() {
+
+	ticker := time.NewTicker(5000 * time.Millisecond)
+	done := make(chan bool)
+
+	go func() {
+		for {
+			select {
+			case <-done:
+				return
+			case t := <-ticker.C:
+				fmt.Println("Rerendering...", t)
+				handleReports()
+			}
+		}
+	}()
 
 	handleReports()
 
