@@ -2,8 +2,8 @@ package reportparser
 
 import (
 	"encoding/xml"
-	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"time"
 )
@@ -61,10 +61,10 @@ func ParseReport(file string) TestResult {
 	xmlFile, err := os.Open(file)
 	// if we os.Open returns an error then handle it
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 	}
 
-	fmt.Printf("Successfully opened %s\n", file)
+	log.Printf("Successfully opened %s\n", file)
 	// defer the closing of our xmlFile so that we can parse it later on
 	byteValue, _ := ioutil.ReadAll(xmlFile)
 	defer xmlFile.Close()
@@ -72,14 +72,13 @@ func ParseReport(file string) TestResult {
 	var assetReportCollection AssetReportCollection
 	xml.Unmarshal(byteValue, &assetReportCollection)
 
-	fmt.Println(assetReportCollection.Reports.Reports[0].Content.TestResult.StartTime)
+	log.Println(assetReportCollection.Reports.Reports[0].Content.TestResult.StartTime)
 
 	for _, result := range assetReportCollection.Reports.Reports[0].Content.TestResult.RuleResults {
 		if result.Result != "notselected" {
-			fmt.Printf("ID: %s\tResult: %s\n", result.IDRef, result.Result)
+			log.Printf("ID: %s\tResult: %s\n", result.IDRef, result.Result)
 		}
 	}
 
 	return assetReportCollection.Reports.Reports[0].Content.TestResult
-
 }

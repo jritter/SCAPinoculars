@@ -2,11 +2,11 @@ package main
 
 import (
 	"errors"
-	"fmt"
-	"io/ioutil"
+	"io/fs"
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 	"text/template"
 	"time"
@@ -18,6 +18,8 @@ import (
 )
 
 const reportsDirsKey = "REPORT_DIRS"
+
+var reports = []Report{}
 
 type Report struct {
 	HTMLReport string
@@ -32,73 +34,15 @@ func renderHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleReports() {
-	var reports = []Report{}
-	var reportDirs = os.Getenv(reportsDirsKey)
 
-	if reportDirs == "" {
-		reportDirs = "resources/arf"
+	var reportDirs = strings.Split(os.Getenv(reportsDirsKey), " ")
+
+	if reportDirs[0] == "" {
+		reportDirs[0] = "resources/arf"
 	}
 
-	files, err := ioutil.ReadDir(reportDirs)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// loop over all xml files
-	for _, file := range files {
-		if strings.HasSuffix(file.Name(), ".xml") {
-			report := reportparser.ParseReport("resources/arf/" + file.Name())
-
-			// Prometheus Metrics
-			// Each report has multiple RuleResults
-			for _, result := range report.RuleResults {
-
-				// We only care about RuleResults with state pass or fail
-				if result.Result == "fail" || result.Result == "pass" {
-
-					// Create Prometheus gauge for each RuleResult
-					// and we add report and result specific labels
-					gauge := prometheus.NewGauge(prometheus.GaugeOpts{
-						Name: "openscap_results",
-						Help: "OpenSCAP Results",
-						ConstLabels: prometheus.Labels{
-							"openscap_ref": result.IDRef,
-							"severity":     result.Severity,
-							"target":       report.Target,
-							"profile":      report.Profile.IDRef},
-					})
-
-					prometheus.Register(gauge)
-
-					// gauge value 0 means fail, gauge vaule 1 means pass
-					if result.Result == "fail" {
-						gauge.Set(0)
-					} else {
-						gauge.Set(1)
-					}
-				}
-			}
-
-			// HTML Report
-			filename := report.Profile.IDRef + "_" + report.Target + "_" + report.StartTime.Format("200601021504") + ".html"
-			fmt.Println(filename)
-
-			// Check if report alrady exists, and render if it doesn't
-			_, err := os.Stat("resources/reports/" + filename)
-			if errors.Is(err, os.ErrNotExist) {
-				fmt.Printf("Report %s is not available, rendering... ", filename)
-				reportrenderer.RenderReport("resources/arf/"+file.Name(), "resources/reports/"+filename)
-				fmt.Println("Done")
-			} else {
-				fmt.Println("Report is already there, not doing anything")
-			}
-
-			reports = append(reports, Report{HTMLReport: filename,
-				ARFReport: file.Name(),
-				Date:      report.StartTime,
-				IDRef:     report.Profile.IDRef,
-				Target:    report.Target})
-		}
+	for _, dir := range reportDirs {
+		filepath.Walk(dir, handleReportFile)
 	}
 
 	reportIndexTemplate, _ := template.ParseFiles("templates/index.tmpl")
@@ -109,6 +53,68 @@ func handleReports() {
 		log.Println("create file: ", reports)
 		return
 	}
+
+}
+
+func handleReportFile(path string, info fs.FileInfo, err error) error {
+	log.Printf("Processing file %s\n", path)
+
+	if strings.HasSuffix(path, ".xml") {
+
+		report := reportparser.ParseReport(path)
+
+		// Prometheus Metrics
+		// Each report has multiple RuleResults
+		for _, result := range report.RuleResults {
+
+			// We only care about RuleResults with state pass or fail
+			if result.Result == "fail" || result.Result == "pass" {
+
+				// Create Prometheus gauge for each RuleResult
+				// and we add report and result specific labels
+				gauge := prometheus.NewGauge(prometheus.GaugeOpts{
+					Name: "openscap_results",
+					Help: "OpenSCAP Results",
+					ConstLabels: prometheus.Labels{
+						"openscap_ref": result.IDRef,
+						"severity":     result.Severity,
+						"target":       report.Target,
+						"profile":      report.Profile.IDRef},
+				})
+
+				prometheus.Register(gauge)
+
+				// gauge value 0 means fail, gauge vaule 1 means pass
+				if result.Result == "fail" {
+					gauge.Set(0)
+				} else {
+					gauge.Set(1)
+				}
+			}
+		}
+
+		// HTML Report
+		filename := report.Profile.IDRef + "_" + report.Target + "_" + report.StartTime.Format("200601021504") + ".html"
+		log.Println(filename)
+
+		// Check if report alrady exists, and render if it doesn't
+		_, err := os.Stat("resources/reports/" + filename)
+		if errors.Is(err, os.ErrNotExist) {
+			log.Printf("Report %s is not available, rendering... ", filename)
+			reportrenderer.RenderReport("resources/arf/"+path, "resources/reports/"+filename)
+			log.Println("Done")
+		} else {
+			log.Println("Report is already there, not doing anything")
+		}
+
+		reports = append(reports, Report{HTMLReport: filename,
+			ARFReport: path,
+			Date:      report.StartTime,
+			IDRef:     report.Profile.IDRef,
+			Target:    report.Target})
+	}
+	return nil
+
 }
 
 func main() {
@@ -122,7 +128,7 @@ func main() {
 			case <-done:
 				return
 			case t := <-ticker.C:
-				fmt.Println("Rerendering...", t)
+				log.Println("Rerendering...", t)
 				handleReports()
 			}
 		}

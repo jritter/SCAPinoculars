@@ -1,7 +1,7 @@
 package reportrenderer
 
 import (
-	"fmt"
+	"log"
 	"os/exec"
 )
 
@@ -17,9 +17,9 @@ func RenderReport(inputFile string, outputFile string) {
 	if err != nil {
 		switch e := err.(type) {
 		case *exec.Error:
-			fmt.Println("failed executing:", err)
+			log.Println("failed executing:", err)
 		case *exec.ExitError:
-			fmt.Println("command exit rc =", e.ExitCode())
+			log.Println("command exit rc =", e.ExitCode())
 		default:
 			panic(err)
 		}
