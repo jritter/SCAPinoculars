@@ -22,6 +22,12 @@
             <tr>
               <td><a href="{{ .HTMLReport }}">{{ .Target }} {{ .IDRef }}</a></td>
               <td>{{ .Date }}</td>
+              <td>
+                <div class="progress" title="Displays proportion of passed/fixed, failed/error, and other rules (in that order). There were $not_ignored_rules_count rules taken into account.">
+                  <div class="progress-bar progress-bar-success" style="width: {{ .PercentPassed }}%">{{ .PassedRules }} passed</div>
+                  <div class="progress-bar progress-bar-danger" style="width: {{ .PercentFailed }}%">{{ .FailedRules }} failed</div>
+                </div>
+              </td>
             </tr>
             {{ end }}
           </tbody>

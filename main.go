@@ -55,6 +55,8 @@ func handleReportFile(path string, info fs.FileInfo, err error) error {
 		log.Printf("Processing file %s\n", path)
 		xmlreport := reportparser.ParseReport(path)
 
+		passed, failed := 0, 0
+
 		// Prometheus Metrics
 		// Each report has multiple RuleResults
 		for _, result := range xmlreport.RuleResults {
@@ -83,6 +85,13 @@ func handleReportFile(path string, info fs.FileInfo, err error) error {
 					gauge.Set(1)
 				}
 			}
+
+			switch result.Result {
+			case "pass":
+				passed++
+			case "fail":
+				failed++
+			}
 		}
 
 		// HTML Report
@@ -99,11 +108,15 @@ func handleReportFile(path string, info fs.FileInfo, err error) error {
 			log.Println("Report is already there, not doing anything")
 		}
 
-		reports = append(reports, report.Report{HTMLReport: filename,
-			ARFReport: path,
-			Date:      xmlreport.StartTime,
-			IDRef:     xmlreport.Profile.IDRef,
-			Target:    xmlreport.Target})
+		report := report.Report{HTMLReport: filename,
+			ARFReport:   path,
+			Date:        xmlreport.StartTime,
+			IDRef:       xmlreport.Profile.IDRef,
+			Target:      xmlreport.Target,
+			PassedRules: passed,
+			FailedRules: failed}
+
+		reports = append(reports, report)
 	}
 	return nil
 
