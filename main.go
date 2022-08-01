@@ -17,6 +17,8 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
+const reportsDirsKey = "REPORT_DIRS"
+
 type Report struct {
 	HTMLReport string
 	ARFReport  string
@@ -31,8 +33,13 @@ func renderHandler(w http.ResponseWriter, r *http.Request) {
 
 func handleReports() {
 	var reports = []Report{}
+	var reportDirs = os.Getenv(reportsDirsKey)
 
-	files, err := ioutil.ReadDir("resources/arf")
+	if reportDirs == "" {
+		reportDirs = "resources/arf"
+	}
+
+	files, err := ioutil.ReadDir(reportDirs)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -123,8 +130,10 @@ func main() {
 
 	handleReports()
 
-	fs := http.FileServer(http.Dir("resources/reports/"))
-	http.Handle("/reports/", http.StripPrefix("/reports/", fs))
+	reports := http.FileServer(http.Dir("resources/reports/"))
+	static := http.FileServer(http.Dir("resources/static/"))
+	http.Handle("/reports/", http.StripPrefix("/reports/", reports))
+	http.Handle("/static/", http.StripPrefix("/static/", static))
 	http.Handle("/metrics", promhttp.Handler())
 	http.HandleFunc("/render", renderHandler)
 	http.ListenAndServe(":2112", nil)
