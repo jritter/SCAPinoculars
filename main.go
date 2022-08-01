@@ -11,6 +11,7 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/jritter/openscap-report-publisher/report"
 	"github.com/jritter/openscap-report-publisher/reportparser"
 	"github.com/jritter/openscap-report-publisher/reportrenderer"
 	"github.com/prometheus/client_golang/prometheus"
@@ -19,15 +20,7 @@ import (
 
 const reportsDirsKey = "REPORT_DIRS"
 
-var reports = []Report{}
-
-type Report struct {
-	HTMLReport string
-	ARFReport  string
-	Date       time.Time
-	IDRef      string
-	Target     string
-}
+var reports = []report.Report{}
 
 func renderHandler(w http.ResponseWriter, r *http.Request) {
 	handleReports()
@@ -57,15 +50,14 @@ func handleReports() {
 }
 
 func handleReportFile(path string, info fs.FileInfo, err error) error {
-	log.Printf("Processing file %s\n", path)
-
+	
 	if strings.HasSuffix(path, ".xml") {
-
-		report := reportparser.ParseReport(path)
+		log.Printf("Processing file %s\n", path)
+		xmlreport := reportparser.ParseReport(path)
 
 		// Prometheus Metrics
 		// Each report has multiple RuleResults
-		for _, result := range report.RuleResults {
+		for _, result := range xmlreport.RuleResults {
 
 			// We only care about RuleResults with state pass or fail
 			if result.Result == "fail" || result.Result == "pass" {
@@ -78,8 +70,8 @@ func handleReportFile(path string, info fs.FileInfo, err error) error {
 					ConstLabels: prometheus.Labels{
 						"openscap_ref": result.IDRef,
 						"severity":     result.Severity,
-						"target":       report.Target,
-						"profile":      report.Profile.IDRef},
+						"target":       xmlreport.Target,
+						"profile":      xmlreport.Profile.IDRef},
 				})
 
 				prometheus.Register(gauge)
@@ -94,7 +86,7 @@ func handleReportFile(path string, info fs.FileInfo, err error) error {
 		}
 
 		// HTML Report
-		filename := report.Profile.IDRef + "_" + report.Target + "_" + report.StartTime.Format("200601021504") + ".html"
+		filename := xmlreport.Profile.IDRef + "_" + xmlreport.Target + "_" + xmlreport.StartTime.Format("200601021504") + ".html"
 		log.Println(filename)
 
 		// Check if report alrady exists, and render if it doesn't
@@ -107,11 +99,11 @@ func handleReportFile(path string, info fs.FileInfo, err error) error {
 			log.Println("Report is already there, not doing anything")
 		}
 
-		reports = append(reports, Report{HTMLReport: filename,
+		reports = append(reports, report.Report{HTMLReport: filename,
 			ARFReport: path,
-			Date:      report.StartTime,
-			IDRef:     report.Profile.IDRef,
-			Target:    report.Target})
+			Date:      xmlreport.StartTime,
+			IDRef:     xmlreport.Profile.IDRef,
+			Target:    xmlreport.Target})
 	}
 	return nil
 
@@ -119,6 +111,7 @@ func handleReportFile(path string, info fs.FileInfo, err error) error {
 
 func main() {
 
+	// periodically retrigger the rendering function
 	ticker := time.NewTicker(5000 * time.Millisecond)
 	done := make(chan bool)
 
@@ -136,11 +129,14 @@ func main() {
 
 	handleReports()
 
+	// This endpoint serves the rendered reports
 	reports := http.FileServer(http.Dir("resources/reports/"))
-	static := http.FileServer(http.Dir("resources/static/"))
 	http.Handle("/reports/", http.StripPrefix("/reports/", reports))
-	http.Handle("/static/", http.StripPrefix("/static/", static))
-	http.Handle("/metrics", promhttp.Handler())
+
+	// Endpoint to manually trigger the rendering function
 	http.HandleFunc("/render", renderHandler)
+
+	// This endpoint serves the Prometheus metrics
+	http.Handle("/metrics", promhttp.Handler())
 	http.ListenAndServe(":2112", nil)
 }
