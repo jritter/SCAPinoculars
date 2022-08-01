@@ -50,7 +50,7 @@ func handleReports() {
 }
 
 func handleReportFile(path string, info fs.FileInfo, err error) error {
-	
+
 	if strings.HasSuffix(path, ".xml") {
 		log.Printf("Processing file %s\n", path)
 		xmlreport := reportparser.ParseReport(path)
