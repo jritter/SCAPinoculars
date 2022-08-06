@@ -94,3 +94,21 @@ count(openscap_results == 1)/count(openscap_results)*100
 ```promql
 count(openscap_results == 0)/count(openscap_results)*100
 ```
+
+## How to Build and Run
+
+### Build Container Image
+
+The Container Image can be built using the existing Containerfile:
+
+```bash
+podman build -t quay.io/jritter/openscap-report-publisher:latest .
+```
+
+### Run the Container Image
+
+Assuming that the ARF RAW Reports are sitting in resources/arf, the container image can be started as follows using podman:
+
+```bash
+podman run -v ./resources/arf:/opt/go/resources/arf:Z -it -p 2112:2112 quay.io/jritter/openscap-report-publisher:latest
+```
