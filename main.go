@@ -26,6 +26,15 @@ func renderHandler(w http.ResponseWriter, r *http.Request) {
 	handleReports()
 }
 
+func indexHandler(w http.ResponseWriter, r *http.Request) {
+	pwd, _ := os.Getwd()
+	reportIndexTemplate, err := template.ParseFiles(pwd + "/templates/index.tmpl")
+	if err != nil {
+		log.Panicf("Could not open template file: %v", err)
+	}
+	reportIndexTemplate.Execute(w, reports)
+}
+
 func handleReports() {
 
 	var reportDirs = strings.Split(os.Getenv(reportsDirsKey), " ")
@@ -36,17 +45,9 @@ func handleReports() {
 
 	for _, dir := range reportDirs {
 		filepath.Walk(dir, handleReportFile)
+		reportserver := http.FileServer(http.Dir(dir + "/"))
+		http.Handle("/"+dir+"/", http.StripPrefix("/"+dir+"/", reportserver))
 	}
-
-	reportIndexTemplate, _ := template.ParseFiles("templates/index.tmpl")
-	reportIndexFile, err := os.Create("resources/reports/index.html")
-
-	reportIndexTemplate.Execute(reportIndexFile, reports)
-	if err != nil {
-		log.Println("create file: ", reports)
-		return
-	}
-
 }
 
 func handleReportFile(path string, info fs.FileInfo, err error) error {
@@ -99,16 +100,16 @@ func handleReportFile(path string, info fs.FileInfo, err error) error {
 		log.Println(filename)
 
 		// Check if report alrady exists, and render if it doesn't
-		_, err := os.Stat("resources/reports/" + filename)
+		_, err := os.Stat(filepath.Dir(path) + "/" + filename)
 		if errors.Is(err, os.ErrNotExist) {
 			log.Printf("Report %s is not available, rendering... ", filename)
-			reportrenderer.RenderReport("resources/arf/"+path, "resources/reports/"+filename)
+			reportrenderer.RenderReport(path, filepath.Dir(path)+"/"+filename)
 			log.Println("Done")
 		} else {
 			log.Println("Report is already there, not doing anything")
 		}
 
-		report := report.Report{HTMLReport: filename,
+		report := report.Report{HTMLReport: filepath.Dir(path) + "/" + filename,
 			ARFReport:   path,
 			Date:        xmlreport.StartTime,
 			IDRef:       xmlreport.Profile.IDRef,
@@ -135,7 +136,7 @@ func main() {
 				return
 			case t := <-ticker.C:
 				log.Println("Rerendering...", t)
-				handleReports()
+				//handleReports()
 			}
 		}
 	}()
@@ -143,8 +144,10 @@ func main() {
 	handleReports()
 
 	// This endpoint serves the rendered reports
-	reports := http.FileServer(http.Dir("resources/reports/"))
-	http.Handle("/reports/", http.StripPrefix("/reports/", reports))
+	//reportserver := http.FileServer(http.Dir("resources/arf/"))
+	//http.Handle("/resources/arf/", http.StripPrefix("/resources/arf/", reportserver))
+
+	http.HandleFunc("/reports", indexHandler)
 
 	// Endpoint to manually trigger the rendering function
 	http.HandleFunc("/render", renderHandler)
