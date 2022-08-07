@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	result := reportparser.ParseReport("resources/arf.xml")
+	result := reportparser.ParseReport("resources/reports/report1/arf.xml")
 
 	for _, result := range result.RuleResults {
 		if result.Result != "notselected" {
