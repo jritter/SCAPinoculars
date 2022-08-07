@@ -175,9 +175,9 @@ func main() {
 		reportDir = "resources/reports"
 	}
 
-	http.HandleFunc("/reportlist", indexHandler)
-
 	handleReports()
+
+	http.HandleFunc("/", indexHandler)
 	reportserver := http.FileServer(http.Dir(reportDir + "/"))
 	http.Handle("/reports/", http.StripPrefix("/reports/", reportserver))
 
