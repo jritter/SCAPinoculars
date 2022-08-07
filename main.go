@@ -88,7 +88,6 @@ func handleReportFile(path string, info fs.FileInfo, err error) error {
 
 		// HTML Report
 		filename := xmlreport.Profile.IDRef + "_" + xmlreport.Target + "_" + xmlreport.StartTime.Format("200601021504") + ".html"
-		log.Println(filename)
 
 		// Check if report alrady exists, and render if it doesn't
 		_, err := os.Stat(filepath.Dir(path) + "/" + filename)
