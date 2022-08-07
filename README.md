@@ -110,5 +110,5 @@ podman build -t quay.io/jritter/openscap-report-publisher:latest .
 Assuming that the ARF RAW Reports are sitting in resources/arf, the container image can be started as follows using podman:
 
 ```bash
-podman run -v ./resources/arf:/opt/go/resources/arf:Z -it -p 2112:2112 quay.io/jritter/openscap-report-publisher:latest
+podman run -v ./resources/reports:/opt/go/resources/reports:Z -it -p 2112:2112 quay.io/jritter/openscap-report-publisher:latest
 ```
