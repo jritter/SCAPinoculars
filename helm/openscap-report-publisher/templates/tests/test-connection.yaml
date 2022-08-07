@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "openscap-report-publisher.fullname" . }}-test-connection"
+  labels:
+    {{- include "openscap-report-publisher.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+spec:
+  containers:
+    - name: wget
+      image: busybox
+      command: ['wget']
+      args: ['{{ include "openscap-report-publisher.fullname" . }}:{{ .Values.service.port }}']
+  restartPolicy: Never
