@@ -1,7 +1,9 @@
 package main
 
 import (
+	"compress/bzip2"
 	"errors"
+	"io"
 	"io/fs"
 	"log"
 	"net/http"
@@ -38,12 +40,46 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleReports() {
+	filepath.Walk(reportDir, handleCompressedReports)
 	filepath.Walk(reportDir, handleReportFile)
+}
+
+func handleCompressedReports(path string, info fs.FileInfo, err error) error {
+	// If the reports are compressed, we need to uncompress them
+	// before we can parse and render them.
+	if strings.HasSuffix(path, ".bz2") && !info.IsDir() {
+		inputFile, err := os.Open(path)
+		if err != nil {
+			log.Println(err)
+			return err
+		}
+
+		defer inputFile.Close()
+
+		outputFile, err := os.Create(strings.TrimSuffix(path, ".bz2"))
+
+		if err != nil {
+			log.Println(err)
+			return err
+		}
+
+		defer outputFile.Close()
+
+		bzip2reader := bzip2.NewReader(inputFile)
+
+		if err != nil {
+			log.Println(err)
+			return err
+		}
+
+		io.Copy(outputFile, bzip2reader)
+	}
+	return nil
 }
 
 func handleReportFile(path string, info fs.FileInfo, err error) error {
 
-	if strings.HasSuffix(path, ".xml") {
+	if strings.HasSuffix(path, ".xml") && !info.IsDir() {
 		log.Printf("Processing file %s\n", path)
 		xmlreport := reportparser.ParseReport(path)
 
