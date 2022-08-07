@@ -22,7 +22,7 @@ const reportsDirKey = "REPORT_DIR"
 
 var reportDir = ""
 
-var reports = []report.Report{}
+var reports = make(map[string]report.Report)
 
 func renderHandler(w http.ResponseWriter, r *http.Request) {
 	handleReports()
@@ -110,7 +110,7 @@ func handleReportFile(path string, info fs.FileInfo, err error) error {
 			PassedRules: passed,
 			FailedRules: failed}
 
-		reports = append(reports, report)
+		reports[reportURL] = report
 	}
 	return nil
 
