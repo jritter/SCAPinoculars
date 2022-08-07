@@ -18,7 +18,9 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
-const reportsDirsKey = "REPORT_DIRS"
+const reportsDirKey = "REPORT_DIR"
+
+var reportDir = ""
 
 var reports = []report.Report{}
 
@@ -36,18 +38,7 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleReports() {
-
-	var reportDirs = strings.Split(os.Getenv(reportsDirsKey), " ")
-
-	if reportDirs[0] == "" {
-		reportDirs[0] = "resources/arf"
-	}
-
-	for _, dir := range reportDirs {
-		filepath.Walk(dir, handleReportFile)
-		reportserver := http.FileServer(http.Dir(dir + "/"))
-		http.Handle("/"+dir+"/", http.StripPrefix("/"+dir+"/", reportserver))
-	}
+	filepath.Walk(reportDir, handleReportFile)
 }
 
 func handleReportFile(path string, info fs.FileInfo, err error) error {
@@ -109,7 +100,9 @@ func handleReportFile(path string, info fs.FileInfo, err error) error {
 			log.Println("Report is already there, not doing anything")
 		}
 
-		report := report.Report{HTMLReport: filepath.Dir(path) + "/" + filename,
+		reportURL := "/reports" + strings.TrimPrefix(filepath.Dir(path)+"/"+filename, reportDir)
+
+		report := report.Report{HTMLReport: reportURL,
 			ARFReport:   path,
 			Date:        xmlreport.StartTime,
 			IDRef:       xmlreport.Profile.IDRef,
@@ -136,18 +129,22 @@ func main() {
 				return
 			case t := <-ticker.C:
 				log.Println("Rerendering...", t)
-				//handleReports()
+				handleReports()
 			}
 		}
 	}()
 
+	reportDir = os.Getenv(reportsDirKey)
+
+	if reportDir == "" {
+		reportDir = "resources/reports"
+	}
+
+	http.HandleFunc("/reportlist", indexHandler)
+
 	handleReports()
-
-	// This endpoint serves the rendered reports
-	//reportserver := http.FileServer(http.Dir("resources/arf/"))
-	//http.Handle("/resources/arf/", http.StripPrefix("/resources/arf/", reportserver))
-
-	http.HandleFunc("/reports", indexHandler)
+	reportserver := http.FileServer(http.Dir(reportDir + "/"))
+	http.Handle("/reports/", http.StripPrefix("/reports/", reportserver))
 
 	// Endpoint to manually trigger the rendering function
 	http.HandleFunc("/render", renderHandler)
