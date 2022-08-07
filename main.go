@@ -154,7 +154,7 @@ func handleReportFile(path string, info fs.FileInfo, err error) error {
 func main() {
 
 	// periodically retrigger the rendering function
-	ticker := time.NewTicker(5000 * time.Millisecond)
+	ticker := time.NewTicker(60 * time.Second)
 	done := make(chan bool)
 
 	go func() {
@@ -186,5 +186,8 @@ func main() {
 
 	// This endpoint serves the Prometheus metrics
 	http.Handle("/metrics", promhttp.Handler())
-	http.ListenAndServe(":2112", nil)
+	err := http.ListenAndServe(":2112", nil)
+	if err != nil {
+		log.Panic(err)
+	}
 }
