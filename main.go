@@ -47,7 +47,7 @@ func handleReports() {
 func handleCompressedReports(path string, info fs.FileInfo, err error) error {
 	// If the reports are compressed, we need to uncompress them
 	// before we can parse and render them.
-	if strings.HasSuffix(path, ".bz2") && !info.IsDir() {
+	if strings.HasSuffix(path, ".bzip2") && !info.IsDir() {
 		inputFile, err := os.Open(path)
 		if err != nil {
 			log.Println(err)
