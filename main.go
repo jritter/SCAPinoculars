@@ -48,32 +48,45 @@ func handleCompressedReports(path string, info fs.FileInfo, err error) error {
 	// If the reports are compressed, we need to uncompress them
 	// before we can parse and render them.
 	if strings.HasSuffix(path, ".bzip2") && !info.IsDir() {
-		log.Printf("Uncompressing file %s\n", path)
-		inputFile, err := os.Open(path)
-		if err != nil {
-			log.Println(err)
-			return err
+
+		// Derrive output file
+
+		uncompressedFile := strings.TrimSuffix(path, ".bzip2")
+
+		_, err := os.Stat(uncompressedFile)
+		if errors.Is(err, os.ErrNotExist) {
+
+
+			log.Printf("Uncompressing file %s\n", path)
+			inputFile, err := os.Open(path)
+			if err != nil {
+				log.Println(err)
+				return err
+			}
+
+			defer inputFile.Close()
+
+			outputFile, err := os.Create(uncompressedFile)
+
+			if err != nil {
+				log.Println(err)
+				return err
+			}
+
+			defer outputFile.Close()
+
+			bzip2reader := bzip2.NewReader(inputFile)
+
+			if err != nil {
+				log.Println(err)
+				return err
+			}
+
+			io.Copy(outputFile, bzip2reader)
+
+		} else {
+			log.Printf("File is %s already uncompressed, skipping...", uncompressedFile)
 		}
-
-		defer inputFile.Close()
-
-		outputFile, err := os.Create(strings.TrimSuffix(path, ".bzip2"))
-
-		if err != nil {
-			log.Println(err)
-			return err
-		}
-
-		defer outputFile.Close()
-
-		bzip2reader := bzip2.NewReader(inputFile)
-
-		if err != nil {
-			log.Println(err)
-			return err
-		}
-
-		io.Copy(outputFile, bzip2reader)
 	}
 	return nil
 }
@@ -154,6 +167,17 @@ func handleReportFile(path string, info fs.FileInfo, err error) error {
 
 func main() {
 
+	
+
+	reportDir = os.Getenv(reportsDirKey)
+
+	if reportDir == "" {
+		reportDir = "resources/reports"
+	}
+
+	// initial load
+	handleReports()
+
 	// periodically retrigger the rendering function
 	ticker := time.NewTicker(60 * time.Second)
 	done := make(chan bool)
@@ -169,14 +193,6 @@ func main() {
 			}
 		}
 	}()
-
-	reportDir = os.Getenv(reportsDirKey)
-
-	if reportDir == "" {
-		reportDir = "resources/reports"
-	}
-
-	handleReports()
 
 	http.HandleFunc("/", indexHandler)
 	reportserver := http.FileServer(http.Dir(reportDir + "/"))
