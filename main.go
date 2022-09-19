@@ -96,72 +96,82 @@ func handleCompressedReports(path string, info fs.FileInfo, err error) error {
 func handleReportFile(path string, info fs.FileInfo, err error) error {
 
 	if strings.HasSuffix(path, ".xml") && !info.IsDir() {
-		log.Printf("Processing file %s\n", path)
-		xmlreport := reportparser.ParseReport(path)
 
-		passed, failed := 0, 0
+		// Let's see if we already parsed the report
+		_, exists := reports[path]
 
-		// Prometheus Metrics
-		// Each report has multiple RuleResults
-		for _, result := range xmlreport.RuleResults {
+		// Only parse the file if it hasn't been parsed yet
+		if ! exists {
 
-			// We only care about RuleResults with state pass or fail
-			if result.Result == "fail" || result.Result == "pass" {
+			log.Printf("Processing file %s\n", path)
+			xmlreport := reportparser.ParseReport(path)
 
-				// Create Prometheus gauge for each RuleResult
-				// and we add report and result specific labels
-				gauge := prometheus.NewGauge(prometheus.GaugeOpts{
-					Name: "openscap_results",
-					Help: "OpenSCAP Results",
-					ConstLabels: prometheus.Labels{
-						"openscap_ref": result.IDRef,
-						"severity":     result.Severity,
-						"target":       xmlreport.Target,
-						"profile":      xmlreport.Profile.IDRef},
-				})
+			passed, failed := 0, 0
 
-				prometheus.Register(gauge)
+			// Prometheus Metrics
+			// Each report has multiple RuleResults
+			for _, result := range xmlreport.RuleResults {
 
-				// gauge value 0 means fail, gauge vaule 1 means pass
-				if result.Result == "fail" {
-					gauge.Set(0)
-				} else {
-					gauge.Set(1)
+				// We only care about RuleResults with state pass or fail
+				if result.Result == "fail" || result.Result == "pass" {
+
+					// Create Prometheus gauge for each RuleResult
+					// and we add report and result specific labels
+					gauge := prometheus.NewGauge(prometheus.GaugeOpts{
+						Name: "openscap_results",
+						Help: "OpenSCAP Results",
+						ConstLabels: prometheus.Labels{
+							"openscap_ref": result.IDRef,
+							"severity":     result.Severity,
+							"target":       xmlreport.Target,
+							"profile":      xmlreport.Profile.IDRef},
+					})
+
+					prometheus.Register(gauge)
+
+					// gauge value 0 means fail, gauge vaule 1 means pass
+					if result.Result == "fail" {
+						gauge.Set(0)
+					} else {
+						gauge.Set(1)
+					}
+				}
+
+				switch result.Result {
+				case "pass":
+					passed++
+				case "fail":
+					failed++
 				}
 			}
 
-			switch result.Result {
-			case "pass":
-				passed++
-			case "fail":
-				failed++
+			// HTML Report
+			filename := xmlreport.Profile.IDRef + "_" + xmlreport.Target + "_" + xmlreport.StartTime.Format("200601021504") + ".html"
+
+			// Check if report alrady exists, and render if it doesn't
+			_, err := os.Stat(filepath.Dir(path) + "/" + filename)
+			if errors.Is(err, os.ErrNotExist) {
+				log.Printf("Report %s is not available, rendering... ", filename)
+				reportrenderer.RenderReport(path, filepath.Dir(path)+"/"+filename)
+				log.Println("Done")
+			} else {
+				log.Println("Report is already there, not doing anything")
 			}
-		}
 
-		// HTML Report
-		filename := xmlreport.Profile.IDRef + "_" + xmlreport.Target + "_" + xmlreport.StartTime.Format("200601021504") + ".html"
+			reportURL := "/reports" + strings.TrimPrefix(filepath.Dir(path)+"/"+filename, reportDir)
 
-		// Check if report alrady exists, and render if it doesn't
-		_, err := os.Stat(filepath.Dir(path) + "/" + filename)
-		if errors.Is(err, os.ErrNotExist) {
-			log.Printf("Report %s is not available, rendering... ", filename)
-			reportrenderer.RenderReport(path, filepath.Dir(path)+"/"+filename)
-			log.Println("Done")
+			report := report.Report{HTMLReport: reportURL,
+				ARFReport:   path,
+				Date:        xmlreport.StartTime,
+				IDRef:       xmlreport.Profile.IDRef,
+				Target:      xmlreport.Target,
+				PassedRules: passed,
+				FailedRules: failed}
+
+			reports[path] = report
 		} else {
-			log.Println("Report is already there, not doing anything")
+			log.Printf("No need to process file %s as it has already been parsed\n", path)
 		}
-
-		reportURL := "/reports" + strings.TrimPrefix(filepath.Dir(path)+"/"+filename, reportDir)
-
-		report := report.Report{HTMLReport: reportURL,
-			ARFReport:   path,
-			Date:        xmlreport.StartTime,
-			IDRef:       xmlreport.Profile.IDRef,
-			Target:      xmlreport.Target,
-			PassedRules: passed,
-			FailedRules: failed}
-
-		reports[reportURL] = report
 	}
 	return nil
 
