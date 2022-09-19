@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"text/template"
 	"time"
@@ -21,6 +22,7 @@ import (
 )
 
 const reportsDirKey = "REPORT_DIR"
+const renderIntervalKey = "RENDER_INTERVAL"
 
 var reportDir = ""
 
@@ -175,11 +177,24 @@ func main() {
 		reportDir = "resources/reports"
 	}
 
+	// 3600 seconds is the default value
+	var renderIntervalDuration time.Duration = 3600
+	renderInterval := os.Getenv(renderIntervalKey)
+	if renderInterval != "" {
+		renderIntervalDurationInt, err := strconv.ParseInt(renderInterval, 10, 0)
+		if (err != nil){
+			log.Printf("Could ot parse environment variable %s, using the default of %s\n", renderIntervalKey, renderIntervalDuration * time.Second)
+		}	else {
+			renderIntervalDuration = time.Duration(renderIntervalDurationInt)
+		}
+	}
+
 	// initial load
 	handleReports()
 
 	// periodically retrigger the rendering function
-	ticker := time.NewTicker(60 * time.Second)
+	log.Printf("Rendering reports every %s\n", renderIntervalDuration * time.Second)
+	ticker := time.NewTicker(renderIntervalDuration * time.Second)
 	done := make(chan bool)
 
 	go func() {
