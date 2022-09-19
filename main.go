@@ -48,6 +48,7 @@ func handleCompressedReports(path string, info fs.FileInfo, err error) error {
 	// If the reports are compressed, we need to uncompress them
 	// before we can parse and render them.
 	if strings.HasSuffix(path, ".bzip2") && !info.IsDir() {
+		log.Printf("Uncompressing file %s\n", path)
 		inputFile, err := os.Open(path)
 		if err != nil {
 			log.Println(err)
@@ -56,7 +57,7 @@ func handleCompressedReports(path string, info fs.FileInfo, err error) error {
 
 		defer inputFile.Close()
 
-		outputFile, err := os.Create(strings.TrimSuffix(path, ".bz2"))
+		outputFile, err := os.Create(strings.TrimSuffix(path, ".bzip2"))
 
 		if err != nil {
 			log.Println(err)
@@ -187,6 +188,9 @@ func main() {
 	// This endpoint serves the Prometheus metrics
 	http.Handle("/metrics", promhttp.Handler())
 	err := http.ListenAndServe(":2112", nil)
+	log.Println("OpenSCAP Report Publisher started")
+	log.Printf("Publishser looks for reports in %s\n", reportDir)
+	log.Println("Listening on port 2112")
 	if err != nil {
 		log.Panic(err)
 	}
