@@ -44,6 +44,7 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 func handleReports() {
 	filepath.Walk(reportDir, handleCompressedReports)
 	filepath.Walk(reportDir, handleReportFile)
+	housekeep()
 }
 
 func handleCompressedReports(path string, info fs.FileInfo, err error) error {
@@ -174,13 +175,19 @@ func handleReportFile(path string, info fs.FileInfo, err error) error {
 		}
 	}
 	return nil
+}
 
+func housekeep() {
+	for path := range reports {
+		_, err := os.Stat(path)
+		if errors.Is(err, os.ErrNotExist) {
+			log.Printf("Report %s no longer exists, deleting from cache\n", path)
+			delete(reports, path)
+		}
+	}
 }
 
 func main() {
-
-	
-
 	reportDir = os.Getenv(reportsDirKey)
 
 	if reportDir == "" {
@@ -199,15 +206,14 @@ func main() {
 		}
 	}
 
-	// initial load
-	handleReports()
-
 	// periodically retrigger the rendering function
 	log.Printf("Rendering reports every %s\n", renderIntervalDuration * time.Second)
 	ticker := time.NewTicker(renderIntervalDuration * time.Second)
 	done := make(chan bool)
 
 	go func() {
+		// initial load
+		handleReports()
 		for {
 			select {
 			case <-done:
