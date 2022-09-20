@@ -226,12 +226,12 @@ func main() {
 	// Endpoint to manually trigger the rendering function
 	http.HandleFunc("/render", renderHandler)
 
-	// This endpoint serves the Prometheus metrics
-	http.Handle("/metrics", promhttp.Handler())
-	err := http.ListenAndServe(":2112", nil)
 	log.Println("OpenSCAP Report Publisher started")
 	log.Printf("Publishser looks for reports in %s\n", reportDir)
 	log.Println("Listening on port 2112")
+	// This endpoint serves the Prometheus metrics
+	http.Handle("/metrics", promhttp.Handler())
+	err := http.ListenAndServe(":2112", nil)
 	if err != nil {
 		log.Panic(err)
 	}
