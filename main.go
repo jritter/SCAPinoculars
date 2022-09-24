@@ -145,7 +145,6 @@ func handleReportFile(path string, info fs.FileInfo, err error) error {
 					err = prometheus.Register(gauge)
 					if err != nil {
 						log.Println(err)
-						return err
 					}
 
 					// gauge value 0 means fail, gauge vaule 1 means pass
