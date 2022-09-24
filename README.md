@@ -1,4 +1,9 @@
-# Commands
+# OpenSCAP Report Publisher
+
+![Build](https://img.shields.io/github/workflow/status/jritter/openscap-report-publisher/Publish%20(main)?label=Build%20%28main%29&style=flat-square)
+[![Go Report Card](https://goreportcard.com/badge/github.com/jritter/openscap-report-publisher?style=flat-square)](https://goreportcard.com/report/github.com/jritter/openscap-report-publisher)
+[![Releases](https://img.shields.io/github/v/release/jritter/openscap-report-publisher?style=flat-square&label=Release)](https://github.com/jritter/openscap-report-publisher/releases)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 
 ## Example of RHEL8 Scan
 
