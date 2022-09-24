@@ -2,8 +2,7 @@ package reportparser
 
 import (
 	"encoding/xml"
-	"io/ioutil"
-	"log"
+	"io"
 	"os"
 	"time"
 )
@@ -56,19 +55,26 @@ type RuleResult struct {
 	Result   string   `xml:"result"`
 }
 
-func ParseReport(file string) TestResult {
+func ParseReport(file string) (TestResult, error) {
+
+	var testResult TestResult
+	
 	// Open our xmlFile
 	xmlFile, err := os.Open(file)
 	// if we os.Open returns an error then handle it
 	if err != nil {
-		log.Println(err)
+		return testResult, err
 	}
 
 	// defer the closing of our xmlFile so that we can parse it later on
-	byteValue, _ := ioutil.ReadAll(xmlFile)
+	byteValue, _ := io.ReadAll(xmlFile)
 	defer xmlFile.Close()
 
 	var assetReportCollection AssetReportCollection
-	xml.Unmarshal(byteValue, &assetReportCollection)
-	return assetReportCollection.Reports.Reports[0].Content.TestResult
+	
+	if err = xml.Unmarshal(byteValue, &assetReportCollection); err != nil {
+		return testResult, err
+	}
+	testResult = assetReportCollection.Reports.Reports[0].Content.TestResult
+	return testResult, nil
 }

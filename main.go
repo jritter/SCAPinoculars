@@ -38,12 +38,18 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Panicf("Could not open template file: %v", err)
 	}
-	reportIndexTemplate.Execute(w, reports)
+	if err = reportIndexTemplate.Execute(w, reports); err != nil {
+		log.Panicf("Could not render index template: %v", err)
+	}
 }
 
 func handleReports() {
-	filepath.Walk(reportDir, handleCompressedReports)
-	filepath.Walk(reportDir, handleReportFile)
+	if err := filepath.Walk(reportDir, handleCompressedReports); err != nil {
+		log.Panicf("Could not decompress Reports: %v", err)
+	}
+	if err := filepath.Walk(reportDir, handleReportFile); err != nil {
+		log.Panicf("Could not parse Reports: %v", err)
+	}
 	housekeep()
 }
 
@@ -85,7 +91,11 @@ func handleCompressedReports(path string, info fs.FileInfo, err error) error {
 				return err
 			}
 
-			io.Copy(outputFile, bzip2reader)
+			_, err = io.Copy(outputFile, bzip2reader)
+			if err != nil {
+				log.Println(err)
+				return err
+			}
 
 		} else {
 			log.Printf("File is %s already uncompressed, skipping...", uncompressedFile)
@@ -105,7 +115,11 @@ func handleReportFile(path string, info fs.FileInfo, err error) error {
 		if ! exists {
 
 			log.Printf("Processing file %s\n", path)
-			xmlreport := reportparser.ParseReport(path)
+			xmlreport, err := reportparser.ParseReport(path)
+			if err != nil {
+				log.Println(err)
+				return err
+			}
 
 			passed, failed := 0, 0
 
@@ -128,7 +142,11 @@ func handleReportFile(path string, info fs.FileInfo, err error) error {
 							"profile":      xmlreport.Profile.IDRef},
 					})
 
-					prometheus.Register(gauge)
+					err = prometheus.Register(gauge)
+					if err != nil {
+						log.Println(err)
+						return err
+					}
 
 					// gauge value 0 means fail, gauge vaule 1 means pass
 					if result.Result == "fail" {
@@ -150,7 +168,7 @@ func handleReportFile(path string, info fs.FileInfo, err error) error {
 			filename := xmlreport.Profile.IDRef + "_" + xmlreport.Target + "_" + xmlreport.StartTime.Format("200601021504") + ".html"
 
 			// Check if report alrady exists, and render if it doesn't
-			_, err := os.Stat(filepath.Dir(path) + "/" + filename)
+			_, err = os.Stat(filepath.Dir(path) + "/" + filename)
 			if errors.Is(err, os.ErrNotExist) {
 				log.Printf("Report %s is not available, rendering... ", filename)
 				reportrenderer.RenderReport(path, filepath.Dir(path)+"/"+filename)
