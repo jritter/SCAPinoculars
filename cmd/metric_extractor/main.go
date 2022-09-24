@@ -2,12 +2,16 @@ package main
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/jritter/openscap-report-publisher/reportparser"
 )
 
 func main() {
-	result := reportparser.ParseReport("resources/reports/report1/arf.xml")
+	result, err := reportparser.ParseReport("resources/reports/report1/arf.xml")
+	if (err != nil){
+		log.Println(err)
+	}
 
 	for _, result := range result.RuleResults {
 		if result.Result != "notselected" {
