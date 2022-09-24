@@ -9,7 +9,7 @@ import (
 
 func main() {
 	result, err := reportparser.ParseReport("resources/reports/report1/arf.xml")
-	if (err != nil){
+	if err != nil {
 		log.Println(err)
 	}
 

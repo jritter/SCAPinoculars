@@ -58,7 +58,7 @@ type RuleResult struct {
 func ParseReport(file string) (TestResult, error) {
 
 	var testResult TestResult
-	
+
 	// Open our xmlFile
 	xmlFile, err := os.Open(file)
 	// if we os.Open returns an error then handle it
@@ -71,7 +71,7 @@ func ParseReport(file string) (TestResult, error) {
 	defer xmlFile.Close()
 
 	var assetReportCollection AssetReportCollection
-	
+
 	if err = xml.Unmarshal(byteValue, &assetReportCollection); err != nil {
 		return testResult, err
 	}

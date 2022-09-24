@@ -65,7 +65,6 @@ func handleCompressedReports(path string, info fs.FileInfo, err error) error {
 		_, err := os.Stat(uncompressedFile)
 		if errors.Is(err, os.ErrNotExist) {
 
-
 			log.Printf("Uncompressing file %s\n", path)
 			inputFile, err := os.Open(path)
 			if err != nil {
@@ -112,7 +111,7 @@ func handleReportFile(path string, info fs.FileInfo, err error) error {
 		_, exists := reports[path]
 
 		// Only parse the file if it hasn't been parsed yet
-		if ! exists {
+		if !exists {
 
 			log.Printf("Processing file %s\n", path)
 			xmlreport, err := reportparser.ParseReport(path)
@@ -216,15 +215,15 @@ func main() {
 	renderInterval := os.Getenv(renderIntervalKey)
 	if renderInterval != "" {
 		renderIntervalDurationInt, err := strconv.ParseInt(renderInterval, 10, 0)
-		if (err != nil){
-			log.Printf("Could ot parse environment variable %s, using the default of %s\n", renderIntervalKey, renderIntervalDuration * time.Second)
-		}	else {
+		if err != nil {
+			log.Printf("Could ot parse environment variable %s, using the default of %s\n", renderIntervalKey, renderIntervalDuration*time.Second)
+		} else {
 			renderIntervalDuration = time.Duration(renderIntervalDurationInt)
 		}
 	}
 
 	// periodically retrigger the rendering function
-	log.Printf("Rendering reports every %s\n", renderIntervalDuration * time.Second)
+	log.Printf("Rendering reports every %s\n", renderIntervalDuration*time.Second)
 	ticker := time.NewTicker(renderIntervalDuration * time.Second)
 	done := make(chan bool)
 
