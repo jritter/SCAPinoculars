@@ -14,9 +14,9 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/jritter/openscap-report-publisher/report"
-	"github.com/jritter/openscap-report-publisher/reportparser"
-	"github.com/jritter/openscap-report-publisher/reportrenderer"
+	"github.com/jritter/openscap-report-publisher/pkg/report"
+	"github.com/jritter/openscap-report-publisher/pkg/reportparser"
+	"github.com/jritter/openscap-report-publisher/pkg/reportrenderer"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
