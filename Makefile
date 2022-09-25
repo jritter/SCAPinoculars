@@ -1,6 +1,6 @@
 # Run go golanci-lint
 lint:
-	golangci-lint run --fix
+	golangci-lint run --fix -D typecheck
 
 # Run go mod tidy
 tidy:
