@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/jritter/openscap-report-publisher/reportparser"
+	"github.com/jritter/openscap-report-publisher/pkg/reportparser"
 )
 
 func main() {
