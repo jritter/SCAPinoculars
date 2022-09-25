@@ -26,7 +26,13 @@ const renderIntervalKey = "RENDER_INTERVAL"
 
 var reportDir = ""
 
-var reports = make(map[string]report.Report)
+type ReportData struct {
+	Reports  map[string]report.Report
+	Targets  []string
+	Profiles []string
+}
+
+var reportData *ReportData = &ReportData{make(map[string]report.Report), []string{}, []string{}}
 
 func renderHandler(w http.ResponseWriter, r *http.Request) {
 	handleReports()
@@ -38,7 +44,7 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Panicf("Could not open template file: %v", err)
 	}
-	if err = reportIndexTemplate.Execute(w, reports); err != nil {
+	if err = reportIndexTemplate.Execute(w, reportData); err != nil {
 		log.Panicf("Could not render index template: %v", err)
 	}
 }
@@ -108,7 +114,7 @@ func handleReportFile(path string, info fs.FileInfo, err error) error {
 	if strings.HasSuffix(path, ".xml") && !info.IsDir() {
 
 		// Let's see if we already parsed the report
-		_, exists := reports[path]
+		_, exists := reportData.Reports[path]
 
 		// Only parse the file if it hasn't been parsed yet
 		if !exists {
@@ -185,7 +191,11 @@ func handleReportFile(path string, info fs.FileInfo, err error) error {
 				PassedRules: passed,
 				FailedRules: failed}
 
-			reports[path] = report
+			reportData.Reports[path] = report
+
+			reportData.Targets = appendIfNotExist(reportData.Targets, report.Target)
+			reportData.Profiles = appendIfNotExist(reportData.Profiles, report.IDRef)
+
 		} else {
 			log.Printf("No need to process file %s as it has already been parsed\n", path)
 		}
@@ -194,13 +204,22 @@ func handleReportFile(path string, info fs.FileInfo, err error) error {
 }
 
 func housekeep() {
-	for path := range reports {
+	for path := range reportData.Reports {
 		_, err := os.Stat(path)
 		if errors.Is(err, os.ErrNotExist) {
 			log.Printf("Report %s no longer exists, deleting from cache\n", path)
-			delete(reports, path)
+			delete(reportData.Reports, path)
 		}
 	}
+}
+
+func appendIfNotExist(slice []string, item string) []string {
+	for _, i := range slice {
+		if i == item {
+			return slice
+		}
+	}
+	return append(slice, item)
 }
 
 func main() {

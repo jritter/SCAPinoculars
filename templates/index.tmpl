@@ -10,23 +10,77 @@
 
     <div class="container theme-showcase" role="main">
       <div class="row">
+        <h2>Overview by Target</h2>
         <table class="table table-striped">
           <thead>
             <tr>
+              <th class="col-md-4">Target</th>
               <th>Report</th>
-              <th>Date</th>
             </tr>
           </thead>
           <tbody>
-            {{ range . }}
+            {{ range .Targets }}
+            {{ $target := . }}
             <tr>
-              <td><a href="{{ .HTMLReport }}">{{ .Target }} {{ .IDRef }}</a></td>
-              <td>{{ .Date }}</td>
+              <td>{{ . }}</td>
               <td>
-                <div class="progress" title="Displays proportion of passed/fixed, failed/error, and other rules (in that order). There were $not_ignored_rules_count rules taken into account.">
-                  <div class="progress-bar progress-bar-success" style="width: {{ .PercentPassed }}%">{{ .PassedRules }} passed</div>
-                  <div class="progress-bar progress-bar-danger" style="width: {{ .PercentFailed }}%">{{ .FailedRules }} failed</div>
-                </div>
+                <ul class="list-group">
+                {{ range $.Reports }}
+                {{ if eq .Target $target }}
+                  <li class="list-group-item">
+                    <div class="row">
+                      <div class="col-md-6"><a href="{{ .HTMLReport }}">{{ .IDRef }}</a></div>
+                      <div class="col-md-3">{{ .Date }}</div>
+                      <div class="col-md-3">
+                        <div class="progress" title="Displays proportion of passed/fixed, failed/error, and other rules (in that order). There were $not_ignored_rules_count rules taken into account.">
+                          <div class="progress-bar progress-bar-success" style="width: {{ .PercentPassed }}%">{{ .PassedRules }} passed</div>
+                          <div class="progress-bar progress-bar-danger" style="width: {{ .PercentFailed }}%">{{ .FailedRules }} failed</div>
+                        </div>
+                      </div>
+                    </div>
+                  </li>
+                {{ end }}
+                {{ end }}
+                </ul>
+              </td>
+            </tr>
+            {{ end }}
+          </tbody>
+        </table>
+      </div>
+      <div class="row">
+        <h2>Overview by Profile</h2>
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th class="col-md-4">Profile</th>
+              <th>Report</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{ range .Profiles }}
+            {{ $profile := . }}
+            <tr>
+              <td>{{ . }}</td>
+              <td>
+                <ul class="list-group">
+                {{ range $.Reports }}
+                {{ if eq .IDRef $profile }}
+                  <li class="list-group-item">
+                    <div class="row">
+                      <div class="col-md-6"><a href="{{ .HTMLReport }}">{{ .IDRef }}</a></div>
+                      <div class="col-md-3">{{ .Date }}</div>
+                      <div class="col-md-3">
+                        <div class="progress" title="Displays proportion of passed/fixed, failed/error, and other rules (in that order). There were $not_ignored_rules_count rules taken into account.">
+                          <div class="progress-bar progress-bar-success" style="width: {{ .PercentPassed }}%">{{ .PassedRules }} passed</div>
+                          <div class="progress-bar progress-bar-danger" style="width: {{ .PercentFailed }}%">{{ .FailedRules }} failed</div>
+                        </div>
+                      </div>
+                    </div>
+                  </li>
+                {{ end }}
+                {{ end }}
+                </ul>
               </td>
             </tr>
             {{ end }}
