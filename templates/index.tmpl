@@ -67,7 +67,7 @@
                 {{ if eq .IDRef $profile }}
                   <li class="list-group-item">
                     <div class="row">
-                      <div class="col-md-9"><a href="{{ .HTMLReport }}">{{ .IDRef }}</a><br />{{ .Date.Format "Mon, 02 Jan 2006 15:04:05 MST" }}</div>
+                      <div class="col-md-9"><a href="{{ .HTMLReport }}">{{ .Target }}</a><br />{{ .Date.Format "Mon, 02 Jan 2006 15:04:05 MST" }}</div>
                       <div class="col-md-3">
                         <div class="progress" title="Displays proportion of passed/fixed, failed/error, and other rules (in that order). There were $not_ignored_rules_count rules taken into account.">
                           <div class="progress-bar progress-bar-success" style="width: {{ .PercentPassed }}%">{{ .PassedRules }} passed</div>
