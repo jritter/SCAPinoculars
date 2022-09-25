@@ -147,9 +147,15 @@ func handleReportFile(path string, info fs.FileInfo, err error) error {
 							"profile":      xmlreport.Profile.IDRef},
 					})
 
-					err = prometheus.Register(gauge)
-					if err != nil {
-						log.Println(err)
+					if err = prometheus.Register(gauge); err != nil {
+						are := &prometheus.AlreadyRegisteredError{}
+						if errors.As(err, are) {
+							// A gauge for that metric has been registered before.
+							// Use the old counter from now on.
+							gauge = are.ExistingCollector.(prometheus.Gauge)
+						} else {
+							log.Panic(err)
+						}
 					}
 
 					// gauge value 0 means fail, gauge vaule 1 means pass
