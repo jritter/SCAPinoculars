@@ -27,7 +27,7 @@
                 <ul class="list-group">
                 {{ range $.Reports }}
                 {{ if eq .Target $target }}
-                  <li class="list-group-item">
+                  <li class="list-group-item"{{ if lt .PercentPassed 100.0  }} style="background-color: #f2dede"{{ end }}>
                     <div class="row">
                       <div class="col-md-9"><a href="{{ .HTMLReport }}">{{ .IDRef }}</a><br />{{ .Date.Format "Mon, 02 Jan 2006 15:04:05 MST" }}</div>
                       <div class="col-md-3">
@@ -65,7 +65,7 @@
                 <ul class="list-group">
                 {{ range $.Reports }}
                 {{ if eq .IDRef $profile }}
-                  <li class="list-group-item">
+                  <li class="list-group-item"{{ if lt .PercentPassed 100.0  }} style="background-color: #f2dede"{{ end }}>
                     <div class="row">
                       <div class="col-md-9"><a href="{{ .HTMLReport }}">{{ .Target }}</a><br />{{ .Date.Format "Mon, 02 Jan 2006 15:04:05 MST" }}</div>
                       <div class="col-md-3">
