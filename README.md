@@ -47,9 +47,15 @@ Assuming that the ARF RAW Reports are sitting in resources/arf, the container im
 podman run -v ./resources/reports:/opt/go/resources/reports:Z -it -p 2112:2112 ghcr.io/jritter/openscap-report-publisher:latest
 ```
 
-## Some interesting Prometheus queries
+## Prometheus Metrics
 
-### Aggregate passed vs. not passed results
+The openscap-report-publisher exposes a metric per rule, which indicated whether or not the rule is passed or not. The openscap-report-publisher webserver exposes these metrics under the URL `/metrics`  These metrics can be used to create interesting dashboards. This project also contains an [example dashboard](configs/grafana/openscap_dashboard.json).
+
+![OpenSCAP Report Publisher Grafana Dashboard](doc/img/openscap_report_publisher_grafana_dashboard.png "OpenSCAP Report Publisher Grafana Dashboard")
+
+### Some interesting Prometheus queries
+
+#### Aggregate passed vs. not passed results
 
 ```promql
 count_values("openscap_result", openscap_results)
@@ -61,11 +67,23 @@ count_values("openscap_result", openscap_results)
 count(openscap_results == 1)/count(openscap_results)*100
 ```
 
-### Percentage of failed checks
+#### Percentage of failed checks
 
 ```promql
 count(openscap_results == 0)/count(openscap_results)*100
 ```
+
+## Testing the metrics stack
+
+This project contains a [compose file](compose.yaml), which brings up a [Prometheus](https://prometheus.io) and [Grafana](https://grafana.com/grafana/) along with the OpenSCAP Report Publisher, and preconfigures the scrape target and data source. This can be used to play around with the metrics that are exposed by the OpenSCAP Report Publisher.
+
+The stack can be started by running
+
+```bash
+podman-compose up
+```
+
+This has been tested with podman-compose 1.0.3 on a Fedora 37. It should also work with docker-compose, but it has not been tested.
 
 ## Some Handy OpenSCAP commands
 
