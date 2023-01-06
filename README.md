@@ -15,6 +15,8 @@ This tool has been implemented with the output of the [OpenShift Compliance Oper
 
 ## How to Build and Run
 
+The commands below have been tested on a Fedora 37 installation with working Golang 1.19 and Podman 4.3.1 installations. The build procedure most probably also works with Docker, but it has not been tested. Also, if you want to run the openscap-report-publisher standalone binary, please make sure that the `oscap` tool is installed. On RHEL and Fedora, this is part of the openscap-scanner package.
+
 ### Build the Code
 
 ```bash
@@ -22,6 +24,8 @@ go build
 ```
 
 ### Run the OpenSCAP Report Publisher
+
+Make sure that the openscap-scanner Package is installed.
 
 ```bash
 ./openscap-report-publisher
