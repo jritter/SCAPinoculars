@@ -1,25 +1,91 @@
 # OpenSCAP Report Publisher
 
-![Build](https://img.shields.io/github/workflow/status/jritter/openscap-report-publisher/Publish%20(main)?label=Build%20%28main%29&style=flat-square)
-[![Go Report Card](https://goreportcard.com/badge/github.com/jritter/openscap-report-publisher?style=flat-square)](https://goreportcard.com/report/github.com/jritter/openscap-report-publisher)
-[![Releases](https://img.shields.io/github/v/release/jritter/openscap-report-publisher?style=flat-square&label=Release)](https://github.com/jritter/openscap-report-publisher/releases)
-[![License](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](https://opensource.org/licenses/MIT)
+![Build](https://github.com/jritter/openscap-report-publisher/actions/workflows/main.yml/badge.svg?style=flat-square)
+[![Go Report Card](https://goreportcard.com/badge/github.com/jritter/openscap-report-publisher)](https://goreportcard.com/report/github.com/jritter/openscap-report-publisher)
+[![Releases](https://img.shields.io/github/v/release/jritter/openscap-report-publisher?label=Release)](https://github.com/jritter/openscap-report-publisher/releases)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-## Example of RHEL8 Scan
+The OpenSCAP Report Publisher can be used to transform and display raw ARF formated OpenSCAP repots into a human readable HTML report. It traverses a configurable directory (environment Variable REPORT_DIR), looks for ARF reports, and renders them into a HTML report, which will reside in the same directory. It can also handle bzip2 compressed xml files. For rendering, it relies on the `oscap` tool.
 
-This example evaluates a RHEL8 system against a CIS L1 Server Benchmark and outputs an ARF formated report into the file arf.xml.
+The reports are then exposed through an embedded web server, by default running on port 2112.
+
+![OpenSCAP Report Publisher Index](doc/img/openscap_report_publisher_index.png "OpenSCAP Report Publisher Index")
+
+This tool has been implemented with the output of the [OpenShift Compliance Operator](https://docs.openshift.com/container-platform/4.11/security/compliance_operator/compliance-operator-understanding.html) in mind. The tooling of the operator only outputs the raw ARF format, and while the results can also be accessed through Kubernetes Resources (ComplianceCheckResult, ComplianceScan, ComplianceSuite), HTML reports are more handy in certain scenarios.
+
+## How to Build and Run
+
+### Build the Code
+
+```bash
+go build
+```
+
+### Run the OpenSCAP Report Publisher
+
+```bash
+./openscap-report-publisher
+```
+
+### Build Container Image
+
+The Container Image can be built using the existing Containerfile:
+
+```bash
+podman build -t quay.io/jritter/openscap-report-publisher:latest .
+```
+
+### Run the Container Image
+
+Assuming that the ARF RAW Reports are sitting in resources/arf, the container image can be started as follows using podman:
+
+```bash
+podman run -v ./resources/reports:/opt/go/resources/reports:Z -it -p 2112:2112 quay.io/jritter/openscap-report-publisher:latest
+```
+
+## Some interesting Prometheus queries
+
+### Aggregate passed vs. not passed results
+
+```promql
+count_values("openscap_result", openscap_results)
+```
+
+### Percentage of passed checks
+
+```promql
+count(openscap_results == 1)/count(openscap_results)*100
+```
+
+### Percentage of failed checks
+
+```promql
+count(openscap_results == 0)/count(openscap_results)*100
+```
+
+## Some Handy OpenSCAP commands
+
+### Evaluate a Profile against a RHEL8 System
+
+This example evaluates the CIS L1 Server Benchmark against a RHEL8 system and outputs an ARF formated report into the file arf.xml.
 
 ```bash
 oscap xccdf eval --profile xccdf_org.ssgproject.content_profile_cis_server_l1 --results-arf resources/arf.xml /usr/share/xml/scap/ssg/content/ssg-rhel8-ds.xml
 ```
 
-## Generate a HTML report
+### Generate a HTML report
 
-This command generates a HTML report from and ARF report.
+This command generates a HTML report (`resources/report.html`) from the ARF report, which was the output of the previous example.
 
 ```bash
 oscap xccdf generate report --output resources/report.html resources/arf.xml
 ```
+
+This is the command that the OpenSCAP report publisher executes in the background.
+
+## Some OpenSCAP insights
+
+While this section is not crucial as a user of this tool, it can be really helpful to understand the code.
 
 ### Example of passed rule
 
@@ -78,42 +144,4 @@ oscap xccdf generate report --output resources/report.html resources/arf.xml
     </arf:report>
   </arf:reports>
 </arf:asset-report-collection>
-```
-
-## Some interesting Prom queries
-
-### Aggregate passed vs. not passed results
-
-```promql
-count_values("openscap_result", openscap_results)
-```
-
-### Percentage of passed checks
-
-```promql
-count(openscap_results == 1)/count(openscap_results)*100
-```
-
-### Percentage of failed checks
-
-```promql
-count(openscap_results == 0)/count(openscap_results)*100
-```
-
-## How to Build and Run
-
-### Build Container Image
-
-The Container Image can be built using the existing Containerfile:
-
-```bash
-podman build -t quay.io/jritter/openscap-report-publisher:latest .
-```
-
-### Run the Container Image
-
-Assuming that the ARF RAW Reports are sitting in resources/arf, the container image can be started as follows using podman:
-
-```bash
-podman run -v ./resources/reports:/opt/go/resources/reports:Z -it -p 2112:2112 quay.io/jritter/openscap-report-publisher:latest
 ```
