@@ -32,7 +32,7 @@ go build
 The Container Image can be built using the existing Containerfile:
 
 ```bash
-podman build -t quay.io/jritter/openscap-report-publisher:latest .
+podman build -t ghcr.io/jritter/openscap-report-publisher:latest .
 ```
 
 ### Run the Container Image
@@ -40,7 +40,7 @@ podman build -t quay.io/jritter/openscap-report-publisher:latest .
 Assuming that the ARF RAW Reports are sitting in resources/arf, the container image can be started as follows using podman:
 
 ```bash
-podman run -v ./resources/reports:/opt/go/resources/reports:Z -it -p 2112:2112 quay.io/jritter/openscap-report-publisher:latest
+podman run -v ./resources/reports:/opt/go/resources/reports:Z -it -p 2112:2112 ghcr.io/jritter/openscap-report-publisher:latest
 ```
 
 ## Some interesting Prometheus queries
