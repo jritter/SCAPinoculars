@@ -1,15 +1,25 @@
 version: "3.8"
 services: 
-  prometheus:
+  openscap-report-publisher:
+    image: ghcr.io/jritter/openscap-report-publisher:latest
+    restart: always
+    volumes:
+      - "./resources/reports:/opt/go/resources/reports:Z"
+    ports:
+      - "2112:2112"
+
+  openscap-report-publisher-prometheus:
     image: quay.io/prometheus/prometheus:latest
     restart: always
     volumes:
       - "./configs/prometheus:/etc/prometheus:Z"
-    
-    
-  grafana:
+    ports:
+      - "9090:9090"
+  
+  openscap-report-publisher-grafana:
     image: docker.io/grafana/grafana
     restart: always
     volumes:
       - "./configs/grafana/provisioning:/etc/grafana/provisioning:Z"
-    
+    ports:
+      - "3000:3000"

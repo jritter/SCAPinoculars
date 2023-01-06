@@ -13,4 +13,4 @@ scrape_configs:
   # This section actually configures the openscap_report_exporter
   - job_name: "openscap_report_publisher"
     static_configs:
-      - targets: ["localhost:2112"] 
+      - targets: ["openscap-report-publisher:2112"] 
