@@ -5,7 +5,7 @@
 replicaCount: 1
 
 image:
-  repository: quay.io/jritter/openscap-report-publisher
+  repository: ghcr.io/jritter/openscap-report-publisher
   pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
   tag: "latest"
