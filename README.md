@@ -7,7 +7,7 @@
 
 The OpenSCAP Report Publisher can be used to transform and display raw ARF formated OpenSCAP repots into a human readable HTML report. It traverses a configurable directory (environment Variable REPORT_DIR), looks for ARF reports, and renders them into a HTML report, which will reside in the same directory. It can also handle bzip2 compressed xml files. For rendering, it relies on the `oscap` tool.
 
-The reports are then exposed through an embedded web server, by default running on port 2112.
+The reports are then exposed through an embedded web server, by default running on port 2112. The port can be configured by configuring the `PORT` environment variable.
 
 ![OpenSCAP Report Publisher Index](doc/img/openscap_report_publisher_index.png "OpenSCAP Report Publisher Index")
 
