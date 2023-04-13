@@ -2,7 +2,7 @@ module github.com/jritter/openscap-report-publisher
 
 go 1.18
 
-require github.com/prometheus/client_golang v1.14.0
+require github.com/prometheus/client_golang v1.15.0
 
 require (
 	github.com/beorn7/perks v1.0.1 // indirect
