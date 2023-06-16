@@ -2,7 +2,7 @@ module github.com/jritter/openscap-report-publisher
 
 go 1.18
 
-require github.com/prometheus/client_golang v1.14.0
+require github.com/prometheus/client_golang v1.16.0
 
 require (
 	github.com/beorn7/perks v1.0.1 // indirect
@@ -11,7 +11,7 @@ require (
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
 	github.com/prometheus/client_model v0.3.0 // indirect
 	github.com/prometheus/common v0.42.0 // indirect
-	github.com/prometheus/procfs v0.9.0 // indirect
-	golang.org/x/sys v0.6.0 // indirect
+	github.com/prometheus/procfs v0.10.1 // indirect
+	golang.org/x/sys v0.8.0 // indirect
 	google.golang.org/protobuf v1.30.0 // indirect
 )
