@@ -21,5 +21,6 @@ services:
     restart: always
     volumes:
       - "./configs/grafana/provisioning:/etc/grafana/provisioning:Z"
+      - "./configs/grafana/dashboards:/etc/grafana/dashboards:Z"
     ports:
       - "3000:3000"
