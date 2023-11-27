@@ -1,4 +1,4 @@
-module github.com/jritter/openscap-report-publisher
+module github.com/jritter/scapinoculars
 
 go 1.21
 

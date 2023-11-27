@@ -14,9 +14,9 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/jritter/openscap-report-publisher/pkg/report"
-	"github.com/jritter/openscap-report-publisher/pkg/reportparser"
-	"github.com/jritter/openscap-report-publisher/pkg/reportrenderer"
+	"github.com/jritter/scapinoculars/pkg/report"
+	"github.com/jritter/scapinoculars/pkg/reportparser"
+	"github.com/jritter/scapinoculars/pkg/reportrenderer"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
@@ -278,7 +278,7 @@ func main() {
 		port = "2112"
 	}
 
-	log.Println("OpenSCAP Report Publisher started")
+	log.Println("SCAPinoculars started")
 	log.Printf("Publishser looks for reports in %s\n", reportDir)
 	log.Printf("Listening on port %s\n", port)
 	// This endpoint serves the Prometheus metrics

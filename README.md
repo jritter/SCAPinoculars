@@ -1,21 +1,21 @@
-# OpenSCAP Report Publisher
+# SCAPinoculars
 
-![Build](https://github.com/jritter/openscap-report-publisher/actions/workflows/main.yml/badge.svg?style=flat-square)
-[![Go Report Card](https://goreportcard.com/badge/github.com/jritter/openscap-report-publisher)](https://goreportcard.com/report/github.com/jritter/openscap-report-publisher)
-[![Releases](https://img.shields.io/github/v/release/jritter/openscap-report-publisher?label=Release)](https://github.com/jritter/openscap-report-publisher/releases)
+![Build](https://github.com/jritter/scapinoculars/actions/workflows/main.yml/badge.svg?style=flat-square)
+[![Go Report Card](https://goreportcard.com/badge/github.com/jritter/scapinoculars)](https://goreportcard.com/report/github.com/jritter/scapinoculars)
+[![Releases](https://img.shields.io/github/v/release/jritter/scapinoculars?label=Release)](https://github.com/jritter/scapinoculars/releases)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-The OpenSCAP Report Publisher can be used to transform and display raw ARF formated OpenSCAP repots into a human readable HTML report. It traverses a configurable directory (environment Variable REPORT_DIR), looks for ARF reports, and renders them into a HTML report, which will reside in the same directory. It can also handle bzip2 compressed xml files. For rendering, it relies on the `oscap` tool.
+SCAPinoculars can be used to transform and display raw ARF formated OpenSCAP repots into a human readable HTML report. It traverses a configurable directory (environment Variable REPORT_DIR), looks for ARF reports, and renders them into a HTML report, which will reside in the same directory. It can also handle bzip2 compressed xml files. For rendering, it relies on the `oscap` tool.
 
 The reports are then exposed through an embedded web server, by default running on port 2112. The port can be configured by configuring the `PORT` environment variable.
 
-![OpenSCAP Report Publisher Index](doc/img/openscap_report_publisher_index.png "OpenSCAP Report Publisher Index")
+![SCAPinoculars Index](doc/img/scapinoculars_index.png "SCAPinoculars Index")
 
-This tool has been implemented with the output of the [OpenShift Compliance Operator](https://docs.openshift.com/container-platform/4.11/security/compliance_operator/compliance-operator-understanding.html) in mind. The tooling of the operator only outputs the raw ARF format, and while the results can also be accessed through Kubernetes Resources (ComplianceCheckResult, ComplianceScan, ComplianceSuite), HTML reports are more handy in certain scenarios.
+This tool has been implemented with the output of the [OpenShift Compliance Operator](https://docs.openshift.com/container-platform/4.14/security/compliance_operator/co-overview.html) in mind. The tooling of the operator only outputs the raw ARF format, and while the results can also be accessed through Kubernetes Resources (ComplianceCheckResult, ComplianceScan, ComplianceSuite), HTML reports are more handy in certain scenarios.
 
 ## How to Build and Run
 
-The commands below have been tested on a Fedora 37 installation with working Golang 1.19 and Podman 4.3.1 installations. The build procedure most probably also works with Docker, but it has not been tested. Also, if you want to run the openscap-report-publisher standalone binary, please make sure that the `oscap` tool is installed. On RHEL and Fedora, this is part of the openscap-scanner package.
+The commands below have been tested on a Fedora 37 installation with working Golang 1.19 and Podman 4.3.1 installations. The build procedure most probably also works with Docker, but it has not been tested. Also, if you want to run the scapinoculars standalone binary, please make sure that the `oscap` tool is installed. On RHEL and Fedora, this is part of the openscap-scanner package.
 
 ### Build the Code
 
@@ -23,12 +23,12 @@ The commands below have been tested on a Fedora 37 installation with working Gol
 go build
 ```
 
-### Run the OpenSCAP Report Publisher
+### Run the SCAPinoculars
 
 Make sure that the openscap-scanner Package is installed.
 
 ```bash
-./openscap-report-publisher
+./scapinoculars
 ```
 
 ### Build Container Image
@@ -36,7 +36,7 @@ Make sure that the openscap-scanner Package is installed.
 The Container Image can be built using the existing Containerfile:
 
 ```bash
-podman build -t ghcr.io/jritter/openscap-report-publisher:latest .
+podman build -t ghcr.io/jritter/scapinoculars:latest .
 ```
 
 ### Run the Container Image
@@ -44,14 +44,14 @@ podman build -t ghcr.io/jritter/openscap-report-publisher:latest .
 Assuming that the ARF RAW Reports are sitting in resources/arf, the container image can be started as follows using podman:
 
 ```bash
-podman run -v ./resources/reports:/opt/go/resources/reports:Z -it -p 2112:2112 ghcr.io/jritter/openscap-report-publisher:latest
+podman run -v ./resources/reports:/opt/go/resources/reports:Z -it -p 2112:2112 ghcr.io/jritter/scapinoculars:latest
 ```
 
 ## Prometheus Metrics
 
-The openscap-report-publisher exposes a metric per rule, which indicated whether or not the rule is passed or not. The openscap-report-publisher webserver exposes these metrics under the URL `/metrics`  These metrics can be used to create interesting dashboards. This project also contains an [example dashboard](configs/grafana/openscap_dashboard.json).
+The scapinoculars exposes a metric per rule, which indicated whether or not the rule is passed or not. The scapinoculars webserver exposes these metrics under the URL `/metrics`  These metrics can be used to create interesting dashboards. This project also contains an [example dashboard](configs/grafana/openscap_dashboard.json).
 
-![OpenSCAP Report Publisher Grafana Dashboard](doc/img/openscap_report_publisher_grafana_dashboard.png "OpenSCAP Report Publisher Grafana Dashboard")
+![SCAPinoculars Grafana Dashboard](doc/img/scapinoculars_grafana_dashboard.png "SCAPinoculars Grafana Dashboard")
 
 ### Some interesting Prometheus queries
 
@@ -75,7 +75,7 @@ count(openscap_results == 0)/count(openscap_results)*100
 
 ## Testing the metrics stack
 
-This project contains a [compose file](compose.yaml), which brings up a [Prometheus](https://prometheus.io) and [Grafana](https://grafana.com/grafana/) along with the OpenSCAP Report Publisher, and preconfigures the scrape target and data source. This can be used to play around with the metrics that are exposed by the OpenSCAP Report Publisher.
+This project contains a [compose file](compose.yaml), which brings up a [Prometheus](https://prometheus.io) and [Grafana](https://grafana.com/grafana/) along with the SCAPinoculars, and preconfigures the scrape target and data source. This can be used to play around with the metrics that are exposed by the SCAPinoculars.
 
 The stack can be started by running
 
@@ -103,7 +103,7 @@ This command generates a HTML report (`resources/report.html`) from the ARF repo
 oscap xccdf generate report --output resources/report.html resources/arf.xml
 ```
 
-This is the command that the OpenSCAP report publisher executes in the background.
+This is the command that the SCAPinoculars executes in the background.
 
 ## Some OpenSCAP insights
 

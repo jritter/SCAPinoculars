@@ -1,14 +1,14 @@
 version: "3.8"
 services: 
-  openscap-report-publisher:
-    image: ghcr.io/jritter/openscap-report-publisher:latest
+  scapinoculars:
+    image: ghcr.io/jritter/scapinoculars:latest
     restart: always
     volumes:
       - "./resources/reports:/opt/go/resources/reports:Z"
     ports:
       - "2112:2112"
 
-  openscap-report-publisher-prometheus:
+  scapinoculars-prometheus:
     image: quay.io/prometheus/prometheus:latest
     restart: always
     volumes:
@@ -16,7 +16,7 @@ services:
     ports:
       - "9090:9090"
   
-  openscap-report-publisher-grafana:
+  scapinoculars-grafana:
     image: docker.io/grafana/grafana
     restart: always
     volumes:

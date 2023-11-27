@@ -8,6 +8,6 @@ datasources:
   - name: Prometheus
     type: prometheus    
     orgId: 1
-    url: http://openscap-report-publisher-prometheus:9090
+    url: http://scapinoculars-prometheus:9090
     version: 1
     editable: false

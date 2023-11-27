@@ -1,6 +1,6 @@
 apiVersion: v2
-name: openscap-report-publisher
-description: The OpenSCAP Report Publisher can be used to render and display OpenSCAP reports
+name: scapinoculars
+description: The SCAPinoculars can be used to render and display OpenSCAP reports
 
 # A chart can be either an 'application' or a 'library' chart.
 #

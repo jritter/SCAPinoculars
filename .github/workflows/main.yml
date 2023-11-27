@@ -20,7 +20,7 @@ jobs:
         id: build-image
         uses: redhat-actions/buildah-build@v2
         with:
-          image: ghcr.io/jritter/openscap-report-publisher
+          image: ghcr.io/jritter/scapinoculars
           tags: latest ${{ github.sha }}
           containerfiles: |
             ./Containerfile
