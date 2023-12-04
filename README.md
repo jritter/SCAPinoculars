@@ -49,7 +49,7 @@ podman run -v ./resources/reports:/opt/go/resources/reports:Z -it -p 2112:2112 g
 
 ## Prometheus Metrics
 
-The scapinoculars exposes a metric per rule, which indicated whether or not the rule is passed or not. The scapinoculars webserver exposes these metrics under the URL `/metrics`  These metrics can be used to create interesting dashboards. This project also contains an [example dashboard](configs/grafana/openscap_dashboard.json).
+The scapinoculars exposes a metric per rule, which indicated whether or not the rule is passed or not. The scapinoculars webserver exposes these metrics under the URL `/metrics`  These metrics can be used to create interesting dashboards. This project also contains an [example dashboard](configs/grafana/provisioning/dashboards/default.yaml).
 
 ![SCAPinoculars Grafana Dashboard](doc/img/scapinoculars_grafana_dashboard.png "SCAPinoculars Grafana Dashboard")
 
