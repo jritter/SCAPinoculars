@@ -5,7 +5,7 @@
 [![Releases](https://img.shields.io/github/v/release/jritter/scapinoculars?label=Release)](https://github.com/jritter/scapinoculars/releases)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-SCAPinoculars can be used to transform and display raw ARF formated OpenSCAP repots into a human readable HTML report. It traverses a configurable directory (environment Variable REPORT_DIR), looks for ARF reports, and renders them into a HTML report, which will reside in the same directory. It can also handle bzip2 compressed xml files. For rendering, it relies on the `oscap` tool.
+SCAPinoculars can be used to transform and display raw ARF formated [OpenSCAP](http://www.open-scap.org/) repots into a human readable HTML report. It traverses a configurable directory (environment Variable REPORT_DIR), looks for ARF reports, and renders them into a HTML report, which will reside in the same directory. It can also handle bzip2 compressed xml files. For rendering, it relies on the `oscap` tool.
 
 The reports are then exposed through an embedded web server, by default running on port 2112. The port can be configured by configuring the `PORT` environment variable.
 
@@ -15,7 +15,7 @@ This tool has been implemented with the output of the [OpenShift Compliance Oper
 
 ## How to Build and Run
 
-The commands below have been tested on a Fedora 37 installation with working Golang 1.19 and Podman 4.3.1 installations. The build procedure most probably also works with Docker, but it has not been tested. Also, if you want to run the scapinoculars standalone binary, please make sure that the `oscap` tool is installed. On RHEL and Fedora, this is part of the openscap-scanner package.
+The commands below have been tested on a [Fedora](https://fedoraproject.org/) 37 installation with working [Golang](https://go.dev/) 1.19 and [Podman](https://podman.io/) 4.3.1 installations. The build procedure most probably also works with Docker, but it has not been tested. Also, if you want to run the scapinoculars standalone binary, please make sure that the `oscap` tool is installed. On RHEL and Fedora, this is part of the openscap-scanner package.
 
 ### Build the Code
 
