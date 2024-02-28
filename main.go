@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/jritter/scapinoculars/pkg/report"
+	"github.com/jritter/scapinoculars/pkg/reportdata"
 	"github.com/jritter/scapinoculars/pkg/reportparser"
 	"github.com/jritter/scapinoculars/pkg/reportrenderer"
 	"github.com/prometheus/client_golang/prometheus"
@@ -26,13 +27,7 @@ const renderIntervalKey = "RENDER_INTERVAL"
 
 var reportDir = ""
 
-type ReportData struct {
-	Reports  map[string]report.Report
-	Targets  []string
-	Profiles []string
-}
-
-var reportData *ReportData = &ReportData{make(map[string]report.Report), []string{}, []string{}}
+var reportData *reportdata.ReportData = &reportdata.ReportData{Reports: make(map[string]report.Report), Targets: []string{}, Profiles: []string{}}
 
 func renderHandler(w http.ResponseWriter, r *http.Request) {
 	handleReports()
@@ -90,11 +85,6 @@ func handleCompressedReports(path string, info fs.FileInfo, err error) error {
 			defer outputFile.Close()
 
 			bzip2reader := bzip2.NewReader(inputFile)
-
-			if err != nil {
-				log.Println(err)
-				return err
-			}
 
 			_, err = io.Copy(outputFile, bzip2reader)
 			if err != nil {
