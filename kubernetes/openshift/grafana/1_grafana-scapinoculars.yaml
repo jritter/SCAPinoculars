@@ -1,0 +1,17 @@
+apiVersion: grafana.integreatly.org/v1beta1
+kind: Grafana
+metadata:
+  labels:
+    dashboards: grafana-scapinoculars
+    folders: grafana-scapinoculars
+  name: grafana-scapinoculars
+  namespace: scapinoculars
+spec:
+  config:
+    auth:
+      disable_login_form: "false"
+    log:
+      mode: console
+    security:
+      admin_password: start
+      admin_user: root
