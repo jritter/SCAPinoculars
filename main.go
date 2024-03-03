@@ -24,8 +24,10 @@ import (
 
 const reportsDirKey = "REPORT_DIR"
 const renderIntervalKey = "RENDER_INTERVAL"
+const reportsOutputKey = "REPORT_OUTPUT_DIR"
 
 var reportDir = ""
+var reportOutputDir = ""
 
 var reportData *reportdata.ReportData = &reportdata.ReportData{Reports: make(map[string]report.Report), Targets: []string{}, Profiles: []string{}}
 
@@ -48,52 +50,71 @@ func handleReports() {
 	if err := filepath.Walk(reportDir, handleCompressedReports); err != nil {
 		log.Panicf("Could not decompress Reports: %v", err)
 	}
-	if err := filepath.Walk(reportDir, handleReportFile); err != nil {
+	if err := filepath.Walk(reportOutputDir, handleReportFile); err != nil {
 		log.Panicf("Could not parse Reports: %v", err)
 	}
 	housekeep()
 }
 
 func handleCompressedReports(path string, info fs.FileInfo, err error) error {
-	// If the reports are compressed, we need to uncompress them
-	// before we can parse and render them.
-	if strings.HasSuffix(path, ".bzip2") && !info.IsDir() {
+	if !info.IsDir() {
+		log.Printf("Handling file %s\n", path)
+		// Derrive the name of the uncompressed report in the target directory
+		uncompressedFile := strings.TrimSuffix(strings.Replace(path, reportDir, reportOutputDir, 1), ".bzip2")
 
-		// Derrive output file
+		// Create the Target directory if necessary
+		if err := os.MkdirAll(filepath.Dir(uncompressedFile), os.ModePerm); err != nil {
+			log.Fatal(err)
+		}
 
-		uncompressedFile := strings.TrimSuffix(path, ".bzip2")
+		if strings.HasSuffix(path, ".bzip2") {
 
-		_, err := os.Stat(uncompressedFile)
-		if errors.Is(err, os.ErrNotExist) {
+			// If the reports are compressed, we need to uncompress them
+			// before we can parse and render them.
 
-			log.Printf("Uncompressing file %s\n", path)
-			inputFile, err := os.Open(path)
-			if err != nil {
-				log.Println(err)
-				return err
+			_, err := os.Stat(uncompressedFile)
+			if errors.Is(err, os.ErrNotExist) {
+
+				log.Printf("Uncompressing file %s\n", path)
+				inputFile, err := os.Open(path)
+				if err != nil {
+					log.Println(err)
+					return err
+				}
+
+				defer inputFile.Close()
+
+				outputFile, err := os.Create(uncompressedFile)
+
+				if err != nil {
+					log.Println(err)
+					return err
+				}
+
+				defer outputFile.Close()
+
+				bzip2reader := bzip2.NewReader(inputFile)
+
+				_, err = io.Copy(outputFile, bzip2reader)
+				if err != nil {
+					log.Println(err)
+					return err
+				}
 			}
-
-			defer inputFile.Close()
-
-			outputFile, err := os.Create(uncompressedFile)
-
-			if err != nil {
-				log.Println(err)
-				return err
-			}
-
-			defer outputFile.Close()
-
-			bzip2reader := bzip2.NewReader(inputFile)
-
-			_, err = io.Copy(outputFile, bzip2reader)
-			if err != nil {
-				log.Println(err)
-				return err
-			}
-
 		} else {
-			log.Printf("File is %s already uncompressed, skipping...", uncompressedFile)
+			log.Printf("File is %s already uncompressed, skipping...", path)
+
+			if _, err := os.Stat(uncompressedFile); errors.Is(err, os.ErrNotExist) {
+				log.Printf("File is not available in output Directory, copying...")
+				bytesRead, err := os.ReadFile(path)
+				if err != nil {
+					log.Fatal(err)
+				}
+				err = os.WriteFile(uncompressedFile, bytesRead, 0644)
+				if err != nil {
+					log.Fatal(err)
+				}
+			}
 		}
 	}
 	return nil
@@ -177,7 +198,7 @@ func handleReportFile(path string, info fs.FileInfo, err error) error {
 				log.Println("Report is already there, not doing anything")
 			}
 
-			reportURL := "/reports" + strings.TrimPrefix(filepath.Dir(path)+"/"+filename, reportDir)
+			reportURL := "/reports" + strings.TrimPrefix(filepath.Dir(path)+"/"+filename, reportOutputDir)
 
 			report := report.Report{HTMLReport: reportURL,
 				ARFReport:   path,
@@ -220,9 +241,16 @@ func appendIfNotExist(slice []string, item string) []string {
 
 func main() {
 	reportDir = os.Getenv(reportsDirKey)
+	reportOutputDir = os.Getenv(reportsOutputKey)
 
 	if reportDir == "" {
 		reportDir = "resources/reports"
+	}
+
+	// We are using the same directory to render the reports into
+	// if nothing else is configured
+	if reportOutputDir == "" {
+		reportOutputDir = reportDir
 	}
 
 	// 3600 seconds is the default value
@@ -257,7 +285,7 @@ func main() {
 	}()
 
 	http.HandleFunc("/", indexHandler)
-	reportserver := http.FileServer(http.Dir(reportDir + "/"))
+	reportserver := http.FileServer(http.Dir(reportOutputDir + "/"))
 	http.Handle("/reports/", http.StripPrefix("/reports/", reportserver))
 
 	// Endpoint to manually trigger the rendering function
