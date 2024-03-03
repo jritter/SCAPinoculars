@@ -297,7 +297,8 @@ func main() {
 	}
 
 	log.Println("SCAPinoculars started")
-	log.Printf("Publishser looks for reports in %s\n", reportDir)
+	log.Printf("Publisher looks for reports in %s\n", reportDir)
+	log.Printf("Publisher renders reports in %s\n", reportOutputDir)
 	log.Printf("Listening on port %s\n", port)
 	// This endpoint serves the Prometheus metrics
 	http.Handle("/metrics", promhttp.Handler())
