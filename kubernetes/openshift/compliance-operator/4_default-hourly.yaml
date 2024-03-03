@@ -1,0 +1,39 @@
+apiVersion: compliance.openshift.io/v1alpha1
+kind: ScanSetting
+maxRetryOnTimeout: 3
+metadata:
+  name: default-hourly
+  namespace: openshift-compliance
+rawResultStorage:
+  nodeSelector:
+    node-role.kubernetes.io/master: ""
+  # storageClassName: 
+  # pvAccessModes:
+  # - ReadWriteMany
+  rotation: 10
+  size: 2Gi
+  tolerations:
+  - effect: NoSchedule
+    key: node-role.kubernetes.io/master
+    operator: Exists
+  - effect: NoExecute
+    key: node.kubernetes.io/not-ready
+    operator: Exists
+    tolerationSeconds: 300
+  - effect: NoExecute
+    key: node.kubernetes.io/unreachable
+    operator: Exists
+    tolerationSeconds: 300
+  - effect: NoSchedule
+    key: node.kubernetes.io/memory-pressure
+    operator: Exists
+roles:
+# Demonstrating on a single node cluster
+- master
+scanTolerations:
+- operator: Exists
+# Hourly for demonstration purposes
+schedule: 0 * * * *
+showNotApplicable: false
+strictNodeScan: true
+timeout: 30m

@@ -4,11 +4,22 @@
 
 replicaCount: 1
 
+scapinoculars:
+  reportPVCs:
+    - ocp4-cis
+    - ocp4-cis-node-master
+    - ocp4-cis-node-worker
+  inputDir: /input
+  outputDir: /output
+  outputPVC:
+    create: true
+    size: 8Gi
+
 image:
   repository: ghcr.io/jritter/scapinoculars
   pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "latest"
+  tag: latest
 
 imagePullSecrets: []
 nameOverride: ""
@@ -22,6 +33,12 @@ serviceAccount:
   # The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template
   name: ""
+
+route:
+  enabled: true
+  tls:
+    insecureEdgeTerminationPolicy: Redirect
+    termination: edge
 
 podAnnotations: {}
 
@@ -40,21 +57,6 @@ service:
   type: ClusterIP
   port: 2112
 
-ingress:
-  enabled: false
-  className: ""
-  annotations: {}
-    # kubernetes.io/ingress.class: nginx
-    # kubernetes.io/tls-acme: "true"
-  hosts:
-    - host: chart-example.local
-      paths:
-        - path: /
-          pathType: ImplementationSpecific
-  tls: []
-  #  - secretName: chart-example-tls
-  #    hosts:
-  #      - chart-example.local
 
 resources: 
   # We usually recommend not to specify default resources and to leave this as a conscious
