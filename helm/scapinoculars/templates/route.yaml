@@ -1,0 +1,18 @@
+{{- if .Values.route.enabled }}
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: {{ include "scapinoculars.fullname" . }}
+  labels:
+  {{- include "scapinoculars.labels" . | nindent 4 }}
+spec:
+  port:
+    targetPort: http
+  tls:
+    {{- toYaml .Values.route.tls | nindent 4 }}
+  to:
+    kind: Service
+    name: {{ include "scapinoculars.fullname" . }}
+    weight: 100
+  wildcardPolicy: None
+{{- end }}

@@ -29,6 +29,11 @@ spec:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
         - name: {{ .Chart.Name }}
+          env:
+          - name: REPORT_OUTPUT_DIR
+            value: {{ .Values.scapinoculars.outputDir }}
+          - name: REPORT_DIR
+            value: {{ .Values.scapinoculars.inputDir }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
@@ -47,6 +52,15 @@ spec:
               port: http
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            {{- range .Values.scapinoculars.reportPVCs }}
+            - mountPath: {{ $.Values.scapinoculars.inputDir }}/{{ . }}
+              name: {{ . }}
+              readOnly: true
+            {{- end }}
+            - mountPath: {{ .Values.scapinoculars.outputDir }}
+              name: {{ include "scapinoculars.fullname" . }}
+
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
@@ -59,3 +73,12 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      volumes:
+      {{- range .Values.scapinoculars.reportPVCs }}
+      - name: {{ . }}
+        persistentVolumeClaim:
+          claimName: {{ . }}
+      {{- end }}
+      - name: {{ include "scapinoculars.fullname" . }}
+        persistentVolumeClaim:
+          claimName: {{ include "scapinoculars.fullname" . }}

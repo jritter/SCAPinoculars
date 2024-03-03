@@ -1,0 +1,15 @@
+{{- if .Values.scapinoculars.outputPVC.create }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "scapinoculars.fullname" . }}
+  labels:
+    {{- include "scapinoculars.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  volumeMode: Filesystem
+  resources:
+    requests:
+      storage: {{ .Values.scapinoculars.outputPVC.size }}
+{{- end }}

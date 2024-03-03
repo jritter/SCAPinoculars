@@ -5,8 +5,11 @@ services:
     restart: always
     volumes:
       - "./resources/reports:/opt/go/resources/reports:Z"
+      - "./resources/output:/opt/go/resources/output:Z"
     ports:
       - "2112:2112"
+    environment:
+      REPORT_OUTPUT_DIR: resources/output
 
   scapinoculars-prometheus:
     image: quay.io/prometheus/prometheus:latest
