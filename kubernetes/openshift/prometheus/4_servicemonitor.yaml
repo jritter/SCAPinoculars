@@ -1,0 +1,15 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: scapinoculars
+  labels:
+    app.kubernetes.io/name: scapinoculars
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: scapinoculars
+  namespaceSelector:
+    matchNames:
+      - openshift-compliance
+  endpoints:
+  - port: http
