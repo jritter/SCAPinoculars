@@ -47,6 +47,26 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleReports() {
+	reportFolderInfo, err := os.Stat(reportDir)
+	if err != nil {
+		log.Printf("directory %s does not exist, terminating.\n", reportDir)
+		os.Exit(1)
+	}
+	if !reportFolderInfo.IsDir() {
+		log.Printf("%s is not a directory, terminating.\n", reportDir)
+		os.Exit(1)
+	}
+
+	outputFolderInfo, err := os.Stat(reportOutputDir)
+	if err != nil {
+		log.Printf("directory %s does not exist, terminating.\n", reportOutputDir)
+		os.Exit(1)
+	}
+	if !outputFolderInfo.IsDir() {
+		log.Printf("%s is not a directory, terminating.\n", reportOutputDir)
+		os.Exit(1)
+	}
+
 	if err := filepath.Walk(reportDir, handleCompressedReports); err != nil {
 		log.Panicf("Could not decompress Reports: %v", err)
 	}
