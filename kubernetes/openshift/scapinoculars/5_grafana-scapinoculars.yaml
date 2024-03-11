@@ -13,5 +13,5 @@ spec:
     log:
       mode: console
     security:
-      admin_password: start
-      admin_user: root
+      admin_password: scapinoculars
+      admin_user: scapinoculars
