@@ -34,7 +34,6 @@ spec:
       "editable": true,
       "fiscalYearStartMonth": 0,
       "graphTooltip": 0,
-      "id": 3,
       "links": [],
       "liveNow": false,
       "panels": [
@@ -140,40 +139,100 @@ spec:
             {
               "disableTextWrap": false,
               "editorMode": "builder",
+              "exemplar": false,
               "expr": "count_values(\"openscap_result\", openscap_results{target=~\"$target\", severity=~\"$severity\"})",
               "fullMetaSearch": false,
               "includeNullMetadata": true,
+              "instant": true,
               "legendFormat": "__auto",
-              "range": true,
+              "range": false,
               "refId": "A",
               "useBackend": false
             }
           ],
           "title": "Overall Check status",
+          "transparent": true,
           "type": "piechart"
         },
         {
           "fieldConfig": {
             "defaults": {
               "color": {
-                "mode": "palette-classic"
+                "mode": "continuous-GrYlRd"
               },
               "mappings": [],
               "thresholds": {
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
-                  },
-                  {
                     "color": "red",
-                    "value": 80
+                    "value": null
                   }
                 ]
               }
             },
-            "overrides": []
+            "overrides": [
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "high"
+                },
+                "properties": [
+                  {
+                    "id": "color",
+                    "value": {
+                      "fixedColor": "red",
+                      "mode": "fixed"
+                    }
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "medium"
+                },
+                "properties": [
+                  {
+                    "id": "color",
+                    "value": {
+                      "fixedColor": "orange",
+                      "mode": "fixed"
+                    }
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "low"
+                },
+                "properties": [
+                  {
+                    "id": "color",
+                    "value": {
+                      "fixedColor": "yellow",
+                      "mode": "fixed"
+                    }
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "unknown"
+                },
+                "properties": [
+                  {
+                    "id": "color",
+                    "value": {
+                      "fixedColor": "blue",
+                      "mode": "fixed"
+                    }
+                  }
+                ]
+              }
+            ]
           },
           "gridPos": {
             "h": 12,
@@ -203,16 +262,19 @@ spec:
             {
               "disableTextWrap": false,
               "editorMode": "code",
+              "exemplar": false,
               "expr": "count by(severity) (openscap_results{target=~\"$target\"} == 0)",
               "fullMetaSearch": false,
               "includeNullMetadata": true,
+              "instant": true,
               "legendFormat": "__auto",
-              "range": true,
+              "range": false,
               "refId": "A",
               "useBackend": false
             }
           ],
           "title": "Failed Rules by Severity",
+          "transparent": true,
           "type": "bargauge"
         },
         {
@@ -330,6 +392,7 @@ spec:
               }
             }
           ],
+          "transparent": true,
           "type": "table"
         }
       ],
@@ -391,12 +454,13 @@ spec:
         ]
       },
       "time": {
-        "from": "now-6h",
+        "from": "now-5m",
         "to": "now"
       },
       "timepicker": {},
       "timezone": "",
       "title": "SCAPinoculars OpenSCAP Dashboard",
-      "version": 9,
+      "uid": "bdfv2zpth1wjkd",
+      "version": 1,
       "weekStart": ""
     }
