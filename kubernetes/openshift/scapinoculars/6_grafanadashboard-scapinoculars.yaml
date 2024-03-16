@@ -34,14 +34,11 @@ spec:
       "editable": true,
       "fiscalYearStartMonth": 0,
       "graphTooltip": 0,
-      "id": 1,
+      "id": 3,
       "links": [],
       "liveNow": false,
       "panels": [
         {
-          "datasource": {
-            "type": "prometheus"
-          },
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -90,7 +87,7 @@ spec:
                   {
                     "id": "color",
                     "value": {
-                      "fixedColor": "semi-dark-green",
+                      "fixedColor": "green",
                       "mode": "fixed"
                     }
                   }
@@ -105,7 +102,7 @@ spec:
                   {
                     "id": "color",
                     "value": {
-                      "fixedColor": "semi-dark-red",
+                      "fixedColor": "red",
                       "mode": "fixed"
                     }
                   }
@@ -121,21 +118,16 @@ spec:
           },
           "id": 2,
           "options": {
-            "displayLabels": [
-              "percent"
-            ],
+            "displayLabels": ["percent"],
             "legend": {
               "displayMode": "list",
               "placement": "bottom",
-              "values": [
-                "percent"
-              ]
+              "showLegend": true,
+              "values": ["percent"]
             },
-            "pieType": "pie",
+            "pieType": "donut",
             "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ],
+              "calcs": ["lastNotNull"],
               "fields": "",
               "values": false
             },
@@ -146,23 +138,21 @@ spec:
           },
           "targets": [
             {
-              "datasource": {
-                "type": "prometheus"
-              },
-              "editorMode": "code",
-              "expr": "count_values(\"openscap_result\", openscap_results)",
+              "disableTextWrap": false,
+              "editorMode": "builder",
+              "expr": "count_values(\"openscap_result\", openscap_results{target=~\"$target\", severity=~\"$severity\"})",
+              "fullMetaSearch": false,
+              "includeNullMetadata": true,
               "legendFormat": "__auto",
               "range": true,
-              "refId": "A"
+              "refId": "A",
+              "useBackend": false
             }
           ],
           "title": "Overall Check status",
           "type": "piechart"
         },
         {
-          "datasource": {
-            "type": "prometheus"
-          },
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -194,38 +184,38 @@ spec:
           "id": 4,
           "options": {
             "displayMode": "gradient",
+            "maxVizHeight": 300,
             "minVizHeight": 10,
             "minVizWidth": 0,
+            "namePlacement": "auto",
             "orientation": "auto",
             "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ],
+              "calcs": ["lastNotNull"],
               "fields": "",
               "values": false
             },
-            "showUnfilled": true
+            "showUnfilled": true,
+            "sizing": "auto",
+            "valueMode": "color"
           },
-          "pluginVersion": "9.0.5",
+          "pluginVersion": "10.4.0",
           "targets": [
             {
-              "datasource": {
-                "type": "prometheus"
-              },
+              "disableTextWrap": false,
               "editorMode": "code",
-              "expr": "count by (severity) (openscap_results == 0)",
+              "expr": "count by(severity) (openscap_results{target=~\"$target\"} == 0)",
+              "fullMetaSearch": false,
+              "includeNullMetadata": true,
               "legendFormat": "__auto",
               "range": true,
-              "refId": "A"
+              "refId": "A",
+              "useBackend": false
             }
           ],
           "title": "Failed Rules by Severity",
           "type": "bargauge"
         },
         {
-          "datasource": {
-            "type": "prometheus"
-          },
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -233,7 +223,9 @@ spec:
               },
               "custom": {
                 "align": "auto",
-                "displayMode": "auto",
+                "cellOptions": {
+                  "type": "auto"
+                },
                 "inspect": false
               },
               "mappings": [],
@@ -286,31 +278,32 @@ spec:
           },
           "id": 6,
           "options": {
+            "cellHeight": "sm",
             "footer": {
+              "countRows": false,
               "fields": "",
-              "reducer": [
-                "sum"
-              ],
+              "reducer": ["sum"],
               "show": false
             },
             "showHeader": true,
             "sortBy": []
           },
-          "pluginVersion": "9.0.5",
+          "pluginVersion": "10.4.0",
           "targets": [
             {
-              "datasource": {
-                "type": "prometheus"
-              },
-              "editorMode": "code",
+              "disableTextWrap": false,
+              "editorMode": "builder",
               "exemplar": false,
-              "expr": "openscap_results == 0",
+              "expr": "openscap_results{target=~\"$target\", severity=~\"$severity\"} == 0",
               "format": "table",
+              "fullMetaSearch": false,
+              "includeNullMetadata": true,
               "instant": true,
               "interval": "",
               "legendFormat": "__auto",
               "range": false,
-              "refId": "A"
+              "refId": "A",
+              "useBackend": false
             }
           ],
           "title": "Failed Rules",
@@ -340,11 +333,62 @@ spec:
           "type": "table"
         }
       ],
-      "schemaVersion": 36,
-      "style": "dark",
+      "refresh": "",
+      "schemaVersion": 39,
       "tags": [],
       "templating": {
-        "list": []
+        "list": [
+          {
+            "allValue": ".+",
+            "current": {
+              "selected": false,
+              "text": "All",
+              "value": "$__all"
+            },
+            "definition": "label_values(openscap_results,target)",
+            "hide": 0,
+            "includeAll": true,
+            "label": "OpenSCAP Target",
+            "multi": false,
+            "name": "target",
+            "options": [],
+            "query": {
+              "qryType": 1,
+              "query": "label_values(openscap_results,target)",
+              "refId": "PrometheusVariableQueryEditor-VariableQuery"
+            },
+            "refresh": 1,
+            "regex": "",
+            "skipUrlSync": false,
+            "sort": 0,
+            "type": "query"
+          },
+          {
+            "allValue": ".+",
+            "current": {
+              "selected": false,
+              "text": "All",
+              "value": "$__all"
+            },
+            "definition": "label_values(openscap_results,severity)",
+            "hide": 0,
+            "includeAll": true,
+            "label": "Severity",
+            "multi": false,
+            "name": "severity",
+            "options": [],
+            "query": {
+              "qryType": 1,
+              "query": "label_values(openscap_results,severity)",
+              "refId": "PrometheusVariableQueryEditor-VariableQuery"
+            },
+            "refresh": 1,
+            "regex": "",
+            "skipUrlSync": false,
+            "sort": 0,
+            "type": "query"
+          }
+        ]
       },
       "time": {
         "from": "now-6h",
@@ -352,7 +396,7 @@ spec:
       },
       "timepicker": {},
       "timezone": "",
-      "title": "SCAPinoculars Metrics",
+      "title": "SCAPinoculars OpenSCAP Dashboard",
       "version": 9,
       "weekStart": ""
     }
