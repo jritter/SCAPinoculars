@@ -8,7 +8,6 @@ scapinoculars:
   reportPVCs:
     - ocp4-cis
     - ocp4-cis-node-master
-    - ocp4-cis-node-worker
   inputDir: /input
   outputDir: /output
   outputPVC:

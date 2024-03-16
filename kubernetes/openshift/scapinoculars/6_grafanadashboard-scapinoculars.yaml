@@ -1,0 +1,402 @@
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: grafanadashboard-scapinoculars
+  namespace: scapinoculars
+spec:
+  instanceSelector:
+    matchLabels:
+      dashboards: grafana-scapinoculars
+  json: |
+    {
+      "annotations": {
+        "list": [
+          {
+            "builtIn": 1,
+            "datasource": {
+              "type": "grafana",
+              "uid": "-- Grafana --"
+            },
+            "enable": true,
+            "hide": true,
+            "iconColor": "rgba(0, 211, 255, 1)",
+            "name": "Annotations & Alerts",
+            "target": {
+              "limit": 100,
+              "matchAny": false,
+              "tags": [],
+              "type": "dashboard"
+            },
+            "type": "dashboard"
+          }
+        ]
+      },
+      "editable": true,
+      "fiscalYearStartMonth": 0,
+      "graphTooltip": 0,
+      "id": 3,
+      "links": [],
+      "liveNow": false,
+      "panels": [
+        {
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                }
+              },
+              "mappings": []
+            },
+            "overrides": [
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "0"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "failed"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "1"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "passed"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "passed"
+                },
+                "properties": [
+                  {
+                    "id": "color",
+                    "value": {
+                      "fixedColor": "green",
+                      "mode": "fixed"
+                    }
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "failed"
+                },
+                "properties": [
+                  {
+                    "id": "color",
+                    "value": {
+                      "fixedColor": "red",
+                      "mode": "fixed"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "gridPos": {
+            "h": 12,
+            "w": 6,
+            "x": 0,
+            "y": 0
+          },
+          "id": 2,
+          "options": {
+            "displayLabels": ["percent"],
+            "legend": {
+              "displayMode": "list",
+              "placement": "bottom",
+              "showLegend": true,
+              "values": ["percent"]
+            },
+            "pieType": "donut",
+            "reduceOptions": {
+              "calcs": ["lastNotNull"],
+              "fields": "",
+              "values": false
+            },
+            "tooltip": {
+              "mode": "single",
+              "sort": "none"
+            }
+          },
+          "targets": [
+            {
+              "disableTextWrap": false,
+              "editorMode": "builder",
+              "expr": "count_values(\"openscap_result\", openscap_results{target=~\"$target\", severity=~\"$severity\"})",
+              "fullMetaSearch": false,
+              "includeNullMetadata": true,
+              "legendFormat": "__auto",
+              "range": true,
+              "refId": "A",
+              "useBackend": false
+            }
+          ],
+          "title": "Overall Check status",
+          "type": "piechart"
+        },
+        {
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 12,
+            "w": 18,
+            "x": 6,
+            "y": 0
+          },
+          "id": 4,
+          "options": {
+            "displayMode": "gradient",
+            "maxVizHeight": 300,
+            "minVizHeight": 10,
+            "minVizWidth": 0,
+            "namePlacement": "auto",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": ["lastNotNull"],
+              "fields": "",
+              "values": false
+            },
+            "showUnfilled": true,
+            "sizing": "auto",
+            "valueMode": "color"
+          },
+          "pluginVersion": "10.4.0",
+          "targets": [
+            {
+              "disableTextWrap": false,
+              "editorMode": "code",
+              "expr": "count by(severity) (openscap_results{target=~\"$target\"} == 0)",
+              "fullMetaSearch": false,
+              "includeNullMetadata": true,
+              "legendFormat": "__auto",
+              "range": true,
+              "refId": "A",
+              "useBackend": false
+            }
+          ],
+          "title": "Failed Rules by Severity",
+          "type": "bargauge"
+        },
+        {
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "custom": {
+                "align": "auto",
+                "cellOptions": {
+                  "type": "auto"
+                },
+                "inspect": false
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              }
+            },
+            "overrides": [
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "profile"
+                },
+                "properties": [
+                  {
+                    "id": "custom.width",
+                    "value": 424
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "openscap_ref"
+                },
+                "properties": [
+                  {
+                    "id": "custom.width",
+                    "value": 659
+                  }
+                ]
+              }
+            ]
+          },
+          "gridPos": {
+            "h": 15,
+            "w": 24,
+            "x": 0,
+            "y": 12
+          },
+          "id": 6,
+          "options": {
+            "cellHeight": "sm",
+            "footer": {
+              "countRows": false,
+              "fields": "",
+              "reducer": ["sum"],
+              "show": false
+            },
+            "showHeader": true,
+            "sortBy": []
+          },
+          "pluginVersion": "10.4.0",
+          "targets": [
+            {
+              "disableTextWrap": false,
+              "editorMode": "builder",
+              "exemplar": false,
+              "expr": "openscap_results{target=~\"$target\", severity=~\"$severity\"} == 0",
+              "format": "table",
+              "fullMetaSearch": false,
+              "includeNullMetadata": true,
+              "instant": true,
+              "interval": "",
+              "legendFormat": "__auto",
+              "range": false,
+              "refId": "A",
+              "useBackend": false
+            }
+          ],
+          "title": "Failed Rules",
+          "transformations": [
+            {
+              "id": "organize",
+              "options": {
+                "excludeByName": {
+                  "Time": true,
+                  "Value": true,
+                  "__name__": true,
+                  "instance": true,
+                  "job": true
+                },
+                "indexByName": {},
+                "renameByName": {
+                  "Time": "",
+                  "Value": "",
+                  "openscap_ref": "OpenSCAP Reference",
+                  "profile": "OpenSCAP Profile",
+                  "severity": "Severity",
+                  "target": "Target"
+                }
+              }
+            }
+          ],
+          "type": "table"
+        }
+      ],
+      "refresh": "",
+      "schemaVersion": 39,
+      "tags": [],
+      "templating": {
+        "list": [
+          {
+            "allValue": ".+",
+            "current": {
+              "selected": false,
+              "text": "All",
+              "value": "$__all"
+            },
+            "definition": "label_values(openscap_results,target)",
+            "hide": 0,
+            "includeAll": true,
+            "label": "OpenSCAP Target",
+            "multi": false,
+            "name": "target",
+            "options": [],
+            "query": {
+              "qryType": 1,
+              "query": "label_values(openscap_results,target)",
+              "refId": "PrometheusVariableQueryEditor-VariableQuery"
+            },
+            "refresh": 1,
+            "regex": "",
+            "skipUrlSync": false,
+            "sort": 0,
+            "type": "query"
+          },
+          {
+            "allValue": ".+",
+            "current": {
+              "selected": false,
+              "text": "All",
+              "value": "$__all"
+            },
+            "definition": "label_values(openscap_results,severity)",
+            "hide": 0,
+            "includeAll": true,
+            "label": "Severity",
+            "multi": false,
+            "name": "severity",
+            "options": [],
+            "query": {
+              "qryType": 1,
+              "query": "label_values(openscap_results,severity)",
+              "refId": "PrometheusVariableQueryEditor-VariableQuery"
+            },
+            "refresh": 1,
+            "regex": "",
+            "skipUrlSync": false,
+            "sort": 0,
+            "type": "query"
+          }
+        ]
+      },
+      "time": {
+        "from": "now-6h",
+        "to": "now"
+      },
+      "timepicker": {},
+      "timezone": "",
+      "title": "SCAPinoculars OpenSCAP Dashboard",
+      "version": 9,
+      "weekStart": ""
+    }
