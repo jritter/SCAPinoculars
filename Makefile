@@ -6,6 +6,9 @@ lint:
 tidy:
 	go mod tidy
 
+container:
+	podman build -t ghcr.io/jritter/scapinoculars:latest .
+
 # Run tests
 test: tidy lint
 	go test ./...  -coverprofile=coverage.out
