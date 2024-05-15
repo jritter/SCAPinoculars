@@ -26,6 +26,8 @@ WORKDIR /opt/go
 COPY --from=builder /build/scapinoculars .
 # Copy the Go templates, but this time from the repository
 COPY ./templates ./templates
+# Copy CSS, so that the reports are beautiful in offline environments
+ADD --chmod=644 https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/css/bootstrap.min.css ./styles/
 # We are using port 2112, also because why not
 EXPOSE 2112
 # We don't need root privileges, yay!

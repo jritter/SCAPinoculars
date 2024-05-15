@@ -28,6 +28,7 @@ const reportsOutputKey = "REPORT_OUTPUT_DIR"
 
 var reportDir = ""
 var reportOutputDir = ""
+var pwd, _ = os.Getwd()
 
 var reportData *reportdata.ReportData = &reportdata.ReportData{Reports: make(map[string]report.Report), Targets: []string{}, Profiles: []string{}}
 
@@ -36,7 +37,6 @@ func renderHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
-	pwd, _ := os.Getwd()
 	reportIndexTemplate, err := template.ParseFiles(pwd + "/templates/index.tmpl")
 	if err != nil {
 		log.Panicf("Could not open template file: %v", err)
@@ -305,6 +305,10 @@ func main() {
 	}()
 
 	http.HandleFunc("/", indexHandler)
+
+	styles := http.FileServer(http.Dir(pwd + "/styles"))
+	http.Handle("/styles/", http.StripPrefix("/styles/", styles))
+
 	reportserver := http.FileServer(http.Dir(reportOutputDir + "/"))
 	http.Handle("/reports/", http.StripPrefix("/reports/", reportserver))
 
