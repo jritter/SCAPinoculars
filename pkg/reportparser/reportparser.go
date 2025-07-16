@@ -3,6 +3,7 @@ package reportparser
 import (
 	"encoding/xml"
 	"io"
+	"log"
 	"os"
 	"time"
 )
@@ -68,7 +69,6 @@ func ParseReport(file string) (TestResult, error) {
 
 	// defer the closing of our xmlFile so that we can parse it later on
 	byteValue, _ := io.ReadAll(xmlFile)
-	defer xmlFile.Close()
 
 	var assetReportCollection AssetReportCollection
 
@@ -76,5 +76,11 @@ func ParseReport(file string) (TestResult, error) {
 		return testResult, err
 	}
 	testResult = assetReportCollection.Reports.Reports[0].Content.TestResult
+
+	err = xmlFile.Close()
+	if err != nil {
+		log.Printf("failed to close xml report file: %v", err)
+	}
+
 	return testResult, nil
 }
