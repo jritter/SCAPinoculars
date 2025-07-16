@@ -102,16 +102,12 @@ func handleCompressedReports(path string, info fs.FileInfo, err error) error {
 					return err
 				}
 
-				defer inputFile.Close()
-
 				outputFile, err := os.Create(uncompressedFile)
 
 				if err != nil {
 					log.Println(err)
 					return err
 				}
-
-				defer outputFile.Close()
 
 				bzip2reader := bzip2.NewReader(inputFile)
 
@@ -120,6 +116,17 @@ func handleCompressedReports(path string, info fs.FileInfo, err error) error {
 					log.Println(err)
 					return err
 				}
+
+				err = inputFile.Close()
+				if err != nil {
+					log.Printf("failed to close input file: %v", err)
+				}
+
+				err = outputFile.Close()
+				if err != nil {
+					log.Printf("failed to close output file: %v", err)
+				}
+
 			}
 		} else {
 			log.Printf("File is %s already uncompressed, skipping...", path)
