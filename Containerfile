@@ -1,5 +1,5 @@
 # We do a two stage build
-FROM golang:1.24 as builder
+FROM docker.io/library/golang:1.26 as builder
 WORKDIR /build
 COPY . .
 
@@ -14,11 +14,13 @@ ENV GO111MODULE=on \
 RUN go build -a -o scapinoculars .
 
 # Now let's assemble the image
-FROM registry.access.redhat.com/ubi9/ubi-minimal
+FROM registry.access.redhat.com/ubi10/ubi-minimal
 
 # We need the openscap-scanner package to generate the fancy
 # HTML reports
-RUN microdnf install -y openscap-scanner
+RUN microdnf install -y openscap-scanner && \
+    microdnf clean all && \
+    rm -rf /var/cache/yum
 
 # Let's put everything in /opt/go because why not
 WORKDIR /opt/go
