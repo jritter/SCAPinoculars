@@ -1,0 +1,94 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  determine-version:
+    name: Determine Release Version
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      version: ${{ steps.semver.outputs.next }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Determine next semantic version
+        id: semver
+        uses: ietf-tools/semver-action@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: main
+          tagFilter: '^v[0-9]+\.[0-9]+\.[0-9]+$'
+          skipInvalidTags: true
+          noVersionBumpBehavior: patch
+
+      - name: Create release tag
+        if: steps.semver.outputs.next != ''
+        run: |
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor }}@users.noreply.github.com"
+          git tag "${{ steps.semver.outputs.next }}"
+          git push origin "${{ steps.semver.outputs.next }}"
+
+  gobuild:
+    name: Go Build and Release
+    runs-on: ubuntu-latest
+    needs: determine-version
+    permissions:
+      contents: write
+      packages: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: 'go.mod'
+
+      - uses: goreleaser/goreleaser-action@v7
+        with:
+          distribution: goreleaser
+          version: '~> v2'
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Login to ghcr.io
+        uses: redhat-actions/podman-login@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build image
+        id: build-image
+        uses: redhat-actions/buildah-build@v2
+        with:
+          image: ghcr.io/${{ github.repository_owner }}/scapinoculars
+          tags: ${{ needs.determine-version.outputs.version }} latest
+          containerfiles: |
+            ./Containerfile
+          labels: |
+            org.opencontainers.image.title=SCAPinoculars
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.version=${{ needs.determine-version.outputs.version }}
+            org.opencontainers.image.created=${{ github.event.repository.updated_at }}
+            org.opencontainers.image.revision=${{ github.sha }}
+          build-args: |
+            VERSION=${{ needs.determine-version.outputs.version }}
+            HASH=${{ github.sha }}
+
+      - name: Push to ghcr.io
+        uses: redhat-actions/push-to-registry@v2
+        with:
+          image: ${{ steps.build-image.outputs.image }}
+          tags: ${{ steps.build-image.outputs.tags }}
+          registry: ghcr.io
