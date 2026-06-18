@@ -9,6 +9,7 @@ permissions:
   contents: write # Required to push git tags and create GitHub releases
   issues: write   # Required if semantic-release adds comments to issues/PRs
   pull-requests: write
+  packages: write
 
 jobs:
   semantic-release:
