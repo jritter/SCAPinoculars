@@ -72,7 +72,7 @@ jobs:
         uses: redhat-actions/buildah-build@v2
         with:
           image: ghcr.io/${{ github.repository_owner }}/scapinoculars
-          tags: ${{ needs.determine-version.outputs.version }} latest
+          tags: v${{ needs.semantic-release.outputs.new_release_version }} ${{ needs.semantic-release.outputs.new_release_version }} latest
           containerfiles: |
             ./Dockerfile
           labels: |
