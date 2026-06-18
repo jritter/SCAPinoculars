@@ -1,0 +1,92 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main # This catches PR merges from develop -> main
+
+permissions:
+  contents: write # Required to push git tags and create GitHub releases
+  issues: write   # Required if semantic-release adds comments to issues/PRs
+  pull-requests: write
+
+jobs:
+  semantic-release:
+    name: Semantic Versioning
+    runs-on: ubuntu-latest
+    # We export these outputs so the GoReleaser job knows if it needs to run
+    outputs:
+      new_release_published: ${{ steps.semantic.outputs.new_release_published }}
+      new_release_version: ${{ steps.semantic.outputs.new_release_version }}
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Required for semantic-release to read all commit history
+
+      - name: Run Semantic Release
+        id: semantic
+        uses: cycjimmy/semantic-release-action@v4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  goreleaser:
+    name: Build & Publish Binaries
+    needs: semantic-release
+    # ONLY run if semantic-release actually created a new version tag
+    if: needs.semantic-release.outputs.new_release_published == 'true'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          # Checkout the exact tag semantic-release just created
+          ref: v${{ needs.semantic-release.outputs.new_release_version }} 
+
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: 'go.mod'
+
+      - uses: goreleaser/goreleaser-action@v7
+        with:
+          distribution: goreleaser
+          version: '~> v2'
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Login to ghcr.io
+        uses: redhat-actions/podman-login@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build image
+        id: build-image
+        uses: redhat-actions/buildah-build@v2
+        with:
+          image: ghcr.io/${{ github.repository_owner }}/scapinoculars
+          tags: ${{ needs.determine-version.outputs.version }} latest
+          containerfiles: |
+            ./Dockerfile
+          labels: |
+            org.opencontainers.image.title=SCAPinoculars
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.version=${{ needs.semantic-release.outputs.new_release_version }}
+            org.opencontainers.image.created=${{ github.event.repository.updated_at }}
+            org.opencontainers.image.revision=${{ github.sha }}
+          build-args: |
+            VERSION=${{ needs.semantic-release.outputs.new_release_version }}
+            HASH=${{ github.sha }}
+
+      - name: Push to ghcr.io
+        uses: redhat-actions/push-to-registry@v2
+        with:
+          image: ${{ steps.build-image.outputs.image }}
+          tags: ${{ steps.build-image.outputs.tags }}
+          registry: ghcr.io
