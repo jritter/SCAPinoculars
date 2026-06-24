@@ -12,7 +12,7 @@ ENV GO111MODULE=on \
 RUN go build -a -o scapinoculars .
 
 # Now let's assemble the image
-FROM registry.access.redhat.com/ubi10/ubi-minimal:1781509581
+FROM registry.access.redhat.com/ubi10/ubi-minimal:1782283191
 ARG HASH=unknown
 ARG VERSION=unknown
 ENV BUILD_HASH=${HASH}
