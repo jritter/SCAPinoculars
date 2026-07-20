@@ -48,7 +48,7 @@ jobs:
           ref: v${{ needs.semantic-release.outputs.new_release_version }} 
 
       - name: Setup Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@v7
         with:
           go-version-file: 'go.mod'
 
