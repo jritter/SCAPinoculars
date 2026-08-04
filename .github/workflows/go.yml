@@ -48,7 +48,7 @@ jobs:
 
       - name: Build image
         id: build-image
-        uses: redhat-actions/buildah-build@v2
+        uses: redhat-actions/buildah-build@v3
         with:
           image: ghcr.io/${{ github.repository_owner }}/scapinoculars
           tags: dev ${{ github.sha }}
@@ -59,7 +59,7 @@ jobs:
             HASH=${{ github.sha }}
 
       - name: Login to ghcr.io
-        uses: redhat-actions/podman-login@v1
+        uses: redhat-actions/podman-login@v2
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}

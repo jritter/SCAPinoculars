@@ -61,7 +61,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Login to ghcr.io
-        uses: redhat-actions/podman-login@v1
+        uses: redhat-actions/podman-login@v2
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
@@ -69,7 +69,7 @@ jobs:
 
       - name: Build image
         id: build-image
-        uses: redhat-actions/buildah-build@v2
+        uses: redhat-actions/buildah-build@v3
         with:
           image: ghcr.io/${{ github.repository_owner }}/scapinoculars
           tags: v${{ needs.semantic-release.outputs.new_release_version }} ${{ needs.semantic-release.outputs.new_release_version }} latest
