@@ -1,5 +1,5 @@
 # We do a two stage build
-FROM docker.io/library/golang:1.26.5-alpine as builder
+FROM docker.io/library/golang:1.26.6-alpine as builder
 WORKDIR /build
 COPY . .
 
@@ -12,7 +12,7 @@ ENV GO111MODULE=on \
 RUN go build -a -o scapinoculars .
 
 # Now let's assemble the image
-FROM registry.access.redhat.com/ubi10/ubi-minimal:1785332777
+FROM registry.access.redhat.com/ubi10/ubi-minimal:1786960777
 ARG HASH=unknown
 ARG VERSION=unknown
 ENV BUILD_HASH=${HASH}
