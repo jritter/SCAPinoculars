@@ -71,7 +71,7 @@ jobs:
         id: build-image
         uses: redhat-actions/buildah-build@v3
         with:
-          image: ghcr.io/${{ github.repository_owner }}/scapinoculars
+          image: ${{ github.repository_owner }}/scapinoculars
           tags: v${{ needs.semantic-release.outputs.new_release_version }} ${{ needs.semantic-release.outputs.new_release_version }} latest
           containerfiles: |
             ./Dockerfile
