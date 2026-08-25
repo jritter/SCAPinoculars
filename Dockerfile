@@ -1,5 +1,5 @@
 # We do a two stage build
-FROM docker.io/library/golang:1.26.6-alpine as builder
+FROM docker.io/library/golang:1.27.0-alpine as builder
 WORKDIR /build
 COPY . .
 
