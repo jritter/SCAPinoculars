@@ -6,15 +6,21 @@ import (
 )
 
 func RenderReport(inputFile string, outputFile string) {
-	_, err := exec.Command(
+	cmd := exec.Command(
 		"oscap",
 		"xccdf",
 		"generate",
 		"report",
 		"--output",
 		outputFile,
-		inputFile).Output()
+		inputFile)
+
+	output, err := cmd.CombinedOutput()
+	if len(output) > 0 {
+		log.Printf("oscap output:\n%s", output)
+	}
 	if err != nil {
+		log.Println("error rendering report:", err)
 		switch e := err.(type) {
 		case *exec.Error:
 			log.Println("failed executing:", err)
