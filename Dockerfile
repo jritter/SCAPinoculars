@@ -1,5 +1,5 @@
 # We do a two stage build
-FROM docker.io/library/golang:1.27.1-alpine as builder
+FROM registry.access.redhat.com/hi/go:1.27.0-builder as builder
 WORKDIR /build
 COPY . .
 
@@ -12,17 +12,11 @@ ENV GO111MODULE=on \
 RUN go build -a -o scapinoculars .
 
 # Now let's assemble the image
-FROM registry.access.redhat.com/ubi10/ubi-minimal:1788137827
+FROM registry.access.redhat.com/hi/openscap:1.4.4
 ARG HASH=unknown
 ARG VERSION=unknown
 ENV BUILD_HASH=${HASH}
 ENV BUILD_VERSION=${VERSION}
-
-# We need the openscap-scanner package to generate the fancy
-# HTML reports
-RUN microdnf install -y openscap-scanner && \
-    microdnf clean all && \
-    rm -rf /var/cache/yum
 
 # Let's put everything in /opt/go because why not
 WORKDIR /opt/go
@@ -37,4 +31,4 @@ EXPOSE 2112
 # We don't need root privileges, yay!
 USER 1001
 # And we launch the binary! 
-CMD ["/opt/go/scapinoculars"]
+ENTRYPOINT ["/opt/go/scapinoculars"]
