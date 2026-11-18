@@ -10,6 +10,8 @@ scapinoculars:
     - ocp4-cis-node-master
   inputDir: /input
   outputDir: /output
+  # Number of newest reports to keep per target/profile. Set to 0 to disable.
+  reportRetentionCount: 3
   outputPVC:
     create: true
     size: 8Gi

@@ -34,6 +34,8 @@ spec:
             value: {{ .Values.scapinoculars.outputDir }}
           - name: REPORT_DIR
             value: {{ .Values.scapinoculars.inputDir }}
+          - name: REPORT_RETENTION_COUNT
+            value: {{ .Values.scapinoculars.reportRetentionCount | quote }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
