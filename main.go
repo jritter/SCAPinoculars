@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
 	"text/template"
@@ -25,12 +26,19 @@ import (
 const reportsDirKey = "REPORT_DIR"
 const renderIntervalKey = "RENDER_INTERVAL"
 const reportsOutputKey = "REPORT_OUTPUT_DIR"
+const reportRetentionCountKey = "REPORT_RETENTION_COUNT"
+const defaultReportRetentionCount = 3
 
 var reportDir = ""
 var reportOutputDir = ""
+var reportRetentionCount = defaultReportRetentionCount
 var pwd, _ = os.Getwd()
 
 var reportData *reportdata.ReportData = &reportdata.ReportData{Reports: make(map[string]report.Report), Targets: []string{}, Profiles: []string{}}
+
+// prunedReports tracks ARF paths removed by retention so they are not re-imported
+// from a still-present (often read-only) input directory on the next render cycle.
+var prunedReports = map[string]struct{}{}
 
 func renderHandler(w http.ResponseWriter, r *http.Request) {
 	handleReports()
@@ -74,6 +82,7 @@ func handleReports() {
 		log.Panicf("Could not parse Reports: %v", err)
 	}
 	housekeep()
+	pruneOldReports()
 }
 
 func handleCompressedReports(path string, info fs.FileInfo, err error) error {
@@ -81,6 +90,11 @@ func handleCompressedReports(path string, info fs.FileInfo, err error) error {
 		log.Printf("Handling file %s\n", path)
 		// Derrive the name of the uncompressed report in the target directory
 		uncompressedFile := strings.TrimSuffix(strings.Replace(path, reportDir, reportOutputDir, 1), ".bzip2")
+
+		if _, pruned := prunedReports[uncompressedFile]; pruned {
+			log.Printf("Skipping pruned report %s\n", uncompressedFile)
+			return nil
+		}
 
 		// Create the Target directory if necessary
 		if err := os.MkdirAll(filepath.Dir(uncompressedFile), os.ModePerm); err != nil {
@@ -150,6 +164,11 @@ func handleCompressedReports(path string, info fs.FileInfo, err error) error {
 func handleReportFile(path string, info fs.FileInfo, err error) error {
 
 	if strings.HasSuffix(path, ".xml") && !info.IsDir() {
+
+		if _, pruned := prunedReports[path]; pruned {
+			log.Printf("Skipping pruned report %s\n", path)
+			return nil
+		}
 
 		// Let's see if we already parsed the report
 		_, exists := reportData.Reports[path]
@@ -257,6 +276,51 @@ func housekeep() {
 	}
 }
 
+// pruneOldReports keeps only the newest reportRetentionCount reports per
+// target+profile pair, deleting older ARF/HTML files from the output directory.
+// A retention count of 0 or less disables pruning.
+func pruneOldReports() {
+	if reportRetentionCount <= 0 {
+		return
+	}
+
+	grouped := make(map[string][]report.Report)
+	for _, r := range reportData.Reports {
+		key := r.Target + "\x00" + r.IDRef
+		grouped[key] = append(grouped[key], r)
+	}
+
+	for _, reports := range grouped {
+		if len(reports) <= reportRetentionCount {
+			continue
+		}
+
+		sort.Slice(reports, func(i, j int) bool {
+			return reports[i].Date.After(reports[j].Date)
+		})
+
+		for _, r := range reports[reportRetentionCount:] {
+			log.Printf("Pruning old report %s (keeping last %d per target/profile)\n", r.ARFReport, reportRetentionCount)
+			deleteReportFiles(r)
+			prunedReports[r.ARFReport] = struct{}{}
+			delete(reportData.Reports, r.ARFReport)
+		}
+	}
+}
+
+func deleteReportFiles(r report.Report) {
+	htmlPath := filepath.Join(filepath.Dir(r.ARFReport), filepath.Base(r.HTMLReport))
+	for _, path := range []string{r.ARFReport, htmlPath, r.ARFReport + ".bzip2"} {
+		if err := os.Remove(path); err != nil {
+			if !errors.Is(err, os.ErrNotExist) {
+				log.Printf("Failed to delete %s: %v\n", path, err)
+			}
+			continue
+		}
+		log.Printf("Deleted %s\n", path)
+	}
+}
+
 func appendIfNotExist(slice []string, item string) []string {
 	for _, i := range slice {
 		if i == item {
@@ -278,6 +342,16 @@ func main() {
 	// if nothing else is configured
 	if reportOutputDir == "" {
 		reportOutputDir = reportDir
+	}
+
+	reportRetentionCount = defaultReportRetentionCount
+	if retention := os.Getenv(reportRetentionCountKey); retention != "" {
+		retentionInt, err := strconv.Atoi(retention)
+		if err != nil {
+			log.Printf("Could not parse environment variable %s, using the default of %d\n", reportRetentionCountKey, defaultReportRetentionCount)
+		} else {
+			reportRetentionCount = retentionInt
+		}
 	}
 
 	// 3600 seconds is the default value
@@ -330,6 +404,11 @@ func main() {
 	log.Println("SCAPinoculars started")
 	log.Printf("Publisher looks for reports in %s\n", reportDir)
 	log.Printf("Publisher renders reports in %s\n", reportOutputDir)
+	if reportRetentionCount <= 0 {
+		log.Println("Report retention is disabled")
+	} else {
+		log.Printf("Keeping the last %d reports per target/profile\n", reportRetentionCount)
+	}
 	log.Printf("Listening on port %s\n", port)
 	// This endpoint serves the Prometheus metrics
 	http.Handle("/metrics", promhttp.Handler())
